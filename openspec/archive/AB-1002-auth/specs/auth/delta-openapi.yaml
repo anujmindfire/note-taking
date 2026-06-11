@@ -1,0 +1,291 @@
+openapi: "3.1.0"
+info:
+  title: JotDown API — AB-1002 Auth Delta
+  version: "1.0.0"
+
+# DELTA TYPE: ADDED
+# All paths below are new additions. No existing paths modified.
+
+paths:
+  /api/auth/register:
+    post:
+      operationId: authRegister
+      summary: Create a new user account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          $ref: "#/components/responses/EmailTaken"
+
+  /api/auth/login:
+    post:
+      operationId: authLogin
+      summary: Authenticate and issue tokens
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/InvalidCredentials"
+
+  /api/auth/logout:
+    post:
+      operationId: authLogout
+      summary: Revoke refresh token and end session
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "204":
+          description: Logged out
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/refresh:
+    post:
+      operationId: authRefresh
+      summary: Rotate refresh token and issue new access token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/RefreshError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          description: "Min 8 chars, 1 uppercase, 1 lowercase, 1 digit"
+          example: "Secret123"
+
+    RegisterResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [userId]
+          properties:
+            userId:
+              type: string
+              format: uuid
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    LoginResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [accessToken, refreshToken, user]
+          properties:
+            accessToken:
+              type: string
+              description: JWT HS256, expires in 15 minutes
+            refreshToken:
+              type: string
+              format: uuid
+              description: Opaque UUID, expires in 7 days
+            user:
+              $ref: "#/components/schemas/UserResponse"
+
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          format: uuid
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          format: uuid
+
+    RefreshResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [accessToken]
+          properties:
+            accessToken:
+              type: string
+              description: New JWT HS256, expires in 15 minutes
+
+    UserResponse:
+      type: object
+      required: [id, email, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - EMAIL_TAKEN
+                - INVALID_CREDENTIALS
+                - TOKEN_EXPIRED
+                - REFRESH_EXPIRED
+                - REFRESH_INVALID
+                - UNAUTHORIZED
+                - VALIDATION_ERROR
+            message:
+              type: string
+            fields:
+              type: array
+              items:
+                type: string
+              description: Only present on VALIDATION_ERROR
+
+  responses:
+    ValidationError:
+      description: Request body failed Zod schema validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Validation failed
+              fields: ["email"]
+
+    EmailTaken:
+      description: Email already registered
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: EMAIL_TAKEN
+              message: Email already exists
+
+    InvalidCredentials:
+      description: Wrong email or password
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: INVALID_CREDENTIALS
+              message: Invalid email or password
+
+    Unauthorized:
+      description: Missing or invalid Authorization header
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Missing or invalid Authorization header
+
+    RefreshError:
+      description: Refresh token invalid or expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalid:
+              value:
+                error:
+                  code: REFRESH_INVALID
+                  message: Refresh token is invalid or revoked
+            expired:
+              value:
+                error:
+                  code: REFRESH_EXPIRED
+                  message: Refresh token has expired
