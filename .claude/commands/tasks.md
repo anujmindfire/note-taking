@@ -1,18 +1,40 @@
-Break down into tasks for: $ARGUMENTS
+Break implementation into tasks for: $ARGUMENTS
 
-Steps:
-1. Read: openspec/changes/$ARGUMENTS/proposal.md
-2. Read: openspec/changes/$ARGUMENTS/plan.md
-3. Generate sequenced task checklist:
-   - Phase 1: Foundation (shared types, DB migrations)
-   - Phase 2: Core implementation [mark PARALLEL tasks]
-   - Phase 3: Integration
-   - Phase 4: Tests (one test per spec scenario)
-   - Checkpoint after each phase:
-     * pnpm build → 0 errors
-     * pnpm lint --max-warnings 0
-     * pnpm test → all green
-4. Save to: openspec/changes/$ARGUMENTS/tasks.md
-5. Wait for approval
+Read:
 
-Format: /tasks AB-1042-user-registration
+1. proposal.md
+2. plan.md
+3. AGENTS.md
+
+Generate phased checklist:
+
+Phase 1:
+
+- contracts
+- schemas
+- migrations
+- shared types
+
+Phase 2:
+
+- backend implementation
+
+Phase 3:
+
+- frontend integration
+
+Phase 4:
+
+- testing
+
+Requirements:
+
+- Every spec scenario must have at least one test
+- Include build/lint/test checkpoints after each phase
+- Mark independent tasks as [PARALLEL]
+- Keep tasks implementation-oriented and concrete
+
+Save to:
+openspec/changes/$ARGUMENTS/tasks.md
+
+Wait for approval.

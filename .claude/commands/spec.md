@@ -1,14 +1,32 @@
-Run OpenSpec proposal creation for: $ARGUMENTS
+Create an OpenSpec proposal for: $ARGUMENTS
 
-Steps:
-1. Run: openspec changes list
-2. Read: openspec/specs/ (current system state)
-3. Read: docs/FRS.md → find relevant requirements for this ticket
-4. Read: docs/SDS.md → find relevant design decisions for this ticket
-5. Read: AGENTS.md (constraints)
-6. Ask clarifying questions — minimum 3, maximum 8
-7. Run: openspec proposal $ARGUMENTS
-8. Show generated proposal.md and spec delta
-9. Do NOT proceed to implementation
+Execution flow:
 
-Format: /spec AB-1042-user-registration
+1. Read:
+   - docs/FRS.md
+   - docs/SDS.md
+   - AGENTS.md
+   - openspec/project.md
+
+2. Analyze current implementation and reusable patterns
+
+3. Ask clarifying questions:
+   - minimum 3
+   - maximum 8
+
+4. Generate:
+   - proposal.md
+   - spec delta
+
+5. Ensure:
+   - aligns with FRS requirements
+   - matches SDS architecture
+   - does not introduce unsupported scope
+   - uses existing project conventions
+
+6. Do NOT implement code
+
+7. Wait for approval
+
+Format:
+/spec AB-XXXX-feature-name

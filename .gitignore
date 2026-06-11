@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.turbo/
+
+# Environment files — never commit these
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Prisma
+apps/backend/prisma/migrations/*.sql.tmp
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Husky internals
+.husky/_/

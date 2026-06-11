@@ -1,25 +1,27 @@
 Prepare PR for: $ARGUMENTS
 
-Steps:
-1. Run:
-   pnpm lint --max-warnings 0
-   pnpm test
-   npx commitlint --from HEAD~1
-   (Fix any failures before proceeding)
-2. Run: git diff main --stat
-3. Read: openspec/archive/$ARGUMENTS/proposal.md
-4. Generate commit:
-   feat(scope): description AB#ticket
-   - bullet 1
-   - bullet 2
-   Relates to AB#XXXX
-5. Ask: "Run git add . && git commit? [y/n]"
-6. Generate PR description:
-   ## What
-   ## FRS Requirements Covered
-   ## Spec Artifacts
-   ## Checklist
-   ## Test Coverage
-7. Ask: "Run git push? [y/n]"
+Run:
 
-Format: /pr AB-1042-user-registration
+1. pnpm build
+2. pnpm lint --max-warnings 0
+3. pnpm test
+
+Fix failures before continuing.
+
+Then:
+
+- summarize implementation
+- map FRS requirements
+- map spec scenarios
+- generate commit message
+- generate PR description
+- summarize testing performed
+- list migrations/config changes
+
+Commit format:
+feat(scope): description AB#ticket
+
+Ask before:
+
+- git commit
+- git push

@@ -1,4 +1,5 @@
 Read these files in order before responding:
+
 1. AGENTS.md
 2. CLAUDE.md
 3. docs/FRS.md
