@@ -1,0 +1,87 @@
+import { prisma } from "../lib/prisma.js";
+
+interface INoteRecord {
+  id: string;
+  userId: string;
+  title: string;
+  content: string;
+  deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  tags: Array<{ id: string; userId: string; name: string; createdAt: Date }>;
+}
+
+const noteInclude = {
+  noteTags: {
+    include: { tag: true },
+  },
+} as const;
+
+function mapRecord(note: {
+  id: string;
+  userId: string;
+  title: string;
+  content: string;
+  deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  noteTags: Array<{ tag: { id: string; userId: string; name: string; createdAt: Date } }>;
+}): INoteRecord {
+  return {
+    id: note.id,
+    userId: note.userId,
+    title: note.title,
+    content: note.content,
+    deletedAt: note.deletedAt,
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
+    tags: note.noteTags.map((nt) => ({
+      id: nt.tag.id,
+      userId: nt.tag.userId,
+      name: nt.tag.name,
+      createdAt: nt.tag.createdAt,
+    })),
+  };
+}
+
+export const NoteRepository = {
+  async findAllByUserId(userId: string): Promise<INoteRecord[]> {
+    const notes = await prisma.note.findMany({
+      where: { userId, deletedAt: null },
+      include: noteInclude,
+    });
+    return notes.map(mapRecord);
+  },
+
+  async findByIdAndUserId(id: string, userId: string): Promise<INoteRecord | null> {
+    const note = await prisma.note.findFirst({
+      where: { id, userId, deletedAt: null },
+      include: noteInclude,
+    });
+    return note ? mapRecord(note) : null;
+  },
+
+  async create(data: { userId: string; title: string; content: string }): Promise<INoteRecord> {
+    const note = await prisma.note.create({
+      data,
+      include: noteInclude,
+    });
+    return mapRecord(note);
+  },
+
+  async update(id: string, data: { title?: string; content?: string }): Promise<INoteRecord> {
+    const note = await prisma.note.update({
+      where: { id },
+      data,
+      include: noteInclude,
+    });
+    return mapRecord(note);
+  },
+
+  async softDelete(id: string): Promise<void> {
+    await prisma.note.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  },
+};
