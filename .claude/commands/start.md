@@ -1,12 +1,18 @@
 Read these files in order before responding:
 
-1. AGENTS.md
-2. CLAUDE.md
-3. docs/FRS.md
-4. docs/SDS.md
-5. /backend/CLAUDE.md (if working on backend)
-6. /frontend/CLAUDE.md (if working on frontend)
-7. openspec/project.md
+1. `AGENTS.md` — architecture rules, error codes, API contracts, naming conventions
+2. `docs/FRS.md` — functional requirements
+3. `docs/SDS.md` — system design spec
+4. `openspec/project.md` — project-level decisions and history
 
-Confirm: "Ready. Loaded FRS, SDS, and project context. What are we building?"
+If working on a specific ticket, also read:
+5. `docs/tickets/{TICKET_ID}.md` — ticket definition
+6. `openspec/changes/{TICKET_ID}/spec.md` — approved spec (if it exists)
+7. `openspec/changes/{TICKET_ID}/plan.md` — approved plan (if it exists)
+8. `openspec/changes/{TICKET_ID}/tasks.md` — task checklist (if it exists)
+
+Confirm with this message:
+
+"Ready. Loaded FRS, SDS, and project context. What are we building?"
+
 Do NOT start any implementation until given a task.
