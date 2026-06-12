@@ -17,6 +17,7 @@ model User {
   notes         Note[]
   tags          Tag[]
   refreshTokens RefreshToken[]
+  otpTokens     OtpToken[]
 }
 
 model Note {
@@ -69,4 +70,16 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
+}
+
+model OtpToken {
+  id         String   @id @default(uuid())
+  userId     String
+  hashedOtp  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

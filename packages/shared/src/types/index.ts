@@ -36,6 +36,20 @@ export interface ITagResponse {
   createdAt: string;
 }
 
+export interface IForgotPasswordRequest {
+  email: string;
+}
+
+export interface IResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface IMessageResponse {
+  message: string;
+}
+
 export interface IErrorResponse {
   error: {
     code: string;

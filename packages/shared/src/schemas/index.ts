@@ -39,3 +39,21 @@ export type TRefreshInput = z.infer<typeof refreshSchema>;
 export type TCreateNoteInput = z.infer<typeof createNoteSchema>;
 export type TUpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type TCreateTagInput = z.infer<typeof createTagSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6).regex(/^\d{6}$/, "OTP must be a 6-digit number"),
+  newPassword: z
+    .string()
+    .min(8)
+    .regex(/[A-Z]/, "Must contain uppercase")
+    .regex(/[a-z]/, "Must contain lowercase")
+    .regex(/[0-9]/, "Must contain digit"),
+});
+
+export type TForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type TResetPasswordInput = z.infer<typeof resetPasswordSchema>;

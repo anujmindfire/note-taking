@@ -24,4 +24,8 @@ export const UserRepository = {
     const user = await prisma.user.create({ data });
     return { id: user.id, email: user.email, passwordHash: user.passwordHash, createdAt: user.createdAt };
   },
+
+  async updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  },
 };

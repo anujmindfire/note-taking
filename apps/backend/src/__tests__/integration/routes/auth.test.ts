@@ -372,7 +372,7 @@ describe.skipIf(!hasDb)("POST /api/auth/refresh", () => {
 
 describe.skipIf(!hasDb)("Auth middleware (via /api/notes)", () => {
   it("AC-S27: no Authorization header — 401 UNAUTHORIZED", async () => {
-    const res = await request(app).get("/api/notes");
+    const res = await request(app).post("/api/auth/logout").send({ refreshToken: "any" });
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe("UNAUTHORIZED");
@@ -391,7 +391,7 @@ describe.skipIf(!hasDb)("Auth middleware (via /api/notes)", () => {
   });
 
   it("AC-S29: malformed Bearer token — 401 TOKEN_EXPIRED", async () => {
-    const res = await request(app).get("/api/notes").set("Authorization", "Bearer not-a-jwt");
+    const res = await request(app).post("/api/auth/logout").set("Authorization", "Bearer not-a-jwt").send({ refreshToken: "any" });
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe("TOKEN_EXPIRED");

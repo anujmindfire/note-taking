@@ -9,6 +9,8 @@ export const ErrorCode = {
   TAG_NOT_FOUND: "TAG_NOT_FOUND",
   TAG_NAME_TAKEN: "TAG_NAME_TAKEN",
   VALIDATION_ERROR: "VALIDATION_ERROR",
+  OTP_EXPIRED: "OTP_EXPIRED",
+  OTP_INVALID: "OTP_INVALID",
 } as const;
 
 export type TErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
