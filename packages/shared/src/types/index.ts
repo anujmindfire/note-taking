@@ -36,6 +36,13 @@ export interface ITagResponse {
   createdAt: string;
 }
 
+export interface INotesPageMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface IForgotPasswordRequest {
   email: string;
 }

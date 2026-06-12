@@ -40,6 +40,19 @@ export type TCreateNoteInput = z.infer<typeof createNoteSchema>;
 export type TUpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type TCreateTagInput = z.infer<typeof createTagSchema>;
 
+export const listNotesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortBy: z.enum(["createdAt", "updatedAt"]).default("createdAt"),
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
+  tagId: z
+    .union([z.string().uuid(), z.array(z.string().uuid())])
+    .optional()
+    .transform((v) => (v === undefined ? [] : Array.isArray(v) ? v : [v])),
+});
+
+export type TListNotesQuery = z.infer<typeof listNotesQuerySchema>;
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
