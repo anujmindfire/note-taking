@@ -98,9 +98,19 @@ Commit format: `feat(scope): description AB#ticket`
 
 ---
 
-## Step 5 — Archive
+## Step 5 — Archive (Rule 18 — required before PR)
 
-After commit, move:
-`openspec/changes/$ARGUMENTS/` → `openspec/archive/$ARGUMENTS/`
+Move the spec before pushing:
 
-Ask [y/n] before this move.
+```bash
+mv openspec/changes/$ARGUMENTS openspec/archive/$ARGUMENTS
+```
+
+Then stage and commit the move:
+
+```bash
+git add openspec/changes/$ARGUMENTS openspec/archive/$ARGUMENTS
+git commit -m "chore(openspec): archive $ARGUMENTS spec after implementation"
+```
+
+Ask [y/n] before this move. Do NOT raise the PR until the archive commit is pushed.
