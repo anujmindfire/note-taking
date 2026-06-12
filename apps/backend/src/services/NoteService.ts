@@ -1,5 +1,5 @@
 import { ErrorCode } from "@noteapp/shared";
-import type { INoteResponse, TCreateNoteInput, TUpdateNoteInput } from "@noteapp/shared";
+import type { INoteResponse, INotesPageMeta, TCreateNoteInput, TListNotesQuery, TUpdateNoteInput } from "@noteapp/shared";
 import { NoteRepository } from "../repositories/NoteRepository.js";
 import { createError } from "../middleware/errorHandler.js";
 
@@ -31,9 +31,22 @@ function mapToResponse(note: {
 }
 
 export const NoteService = {
-  async listNotes(userId: string): Promise<INoteResponse[]> {
-    const notes = await NoteRepository.findAllByUserId(userId);
-    return notes.map(mapToResponse);
+  async listNotes(
+    userId: string,
+    params: TListNotesQuery
+  ): Promise<{ notes: INoteResponse[]; meta: INotesPageMeta }> {
+    const { notes, total } = await NoteRepository.findPaginated(userId, {
+      page: params.page,
+      limit: params.limit,
+      sortBy: params.sortBy,
+      sortDir: params.sortDir,
+      tagIds: params.tagId,
+    });
+    const totalPages = Math.ceil(total / params.limit);
+    return {
+      notes: notes.map(mapToResponse),
+      meta: { total, page: params.page, limit: params.limit, totalPages },
+    };
   },
 
   async getNote(id: string, userId: string): Promise<INoteResponse> {

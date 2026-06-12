@@ -34,6 +34,8 @@ model Note {
 
   @@index([userId])
   @@index([deletedAt])
+  @@index([userId, createdAt])
+  @@index([userId, updatedAt])
 }
 
 model Tag {
@@ -57,6 +59,7 @@ model NoteTag {
   tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([noteId, tagId])
+  @@index([tagId])
 }
 
 model RefreshToken {

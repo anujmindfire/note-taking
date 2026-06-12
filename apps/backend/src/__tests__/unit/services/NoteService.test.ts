@@ -4,6 +4,7 @@ vi.mock("../../../repositories/NoteRepository.js", () => ({
   NoteRepository: {
     findAllByUserId: vi.fn(),
     findByIdAndUserId: vi.fn(),
+    findPaginated: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     softDelete: vi.fn(),
@@ -13,6 +14,15 @@ vi.mock("../../../repositories/NoteRepository.js", () => ({
 import { NoteRepository } from "../../../repositories/NoteRepository.js";
 import { NoteService } from "../../../services/NoteService.js";
 import { ErrorCode } from "@noteapp/shared";
+import type { TListNotesQuery } from "@noteapp/shared";
+
+const defaultQuery: TListNotesQuery = {
+  page: 1,
+  limit: 20,
+  sortBy: "createdAt",
+  sortDir: "desc",
+  tagId: [],
+};
 
 // ---------------------------------------------------------------------------
 // Shared fixtures
@@ -56,22 +66,31 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("NoteService.listNotes", () => {
-  it("AC-N5: returns mapped array of active notes for user", async () => {
-    vi.mocked(NoteRepository.findAllByUserId).mockResolvedValue([mockNoteRecord]);
+  it("AC-N5: returns mapped notes and meta for user", async () => {
+    vi.mocked(NoteRepository.findPaginated).mockResolvedValue({ notes: [mockNoteRecord], total: 1 });
 
-    const result = await NoteService.listNotes("user-uuid-1");
+    const result = await NoteService.listNotes("user-uuid-1", defaultQuery);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject(mockNoteResponse);
-    expect(NoteRepository.findAllByUserId).toHaveBeenCalledWith("user-uuid-1");
+    expect(result.notes).toHaveLength(1);
+    expect(result.notes[0]).toMatchObject(mockNoteResponse);
+    expect(result.meta).toMatchObject({ total: 1, page: 1, limit: 20, totalPages: 1 });
+    expect(NoteRepository.findPaginated).toHaveBeenCalledWith("user-uuid-1", {
+      page: 1,
+      limit: 20,
+      sortBy: "createdAt",
+      sortDir: "desc",
+      tagIds: [],
+    });
   });
 
-  it("AC-N6: returns empty array when user has no active notes", async () => {
-    vi.mocked(NoteRepository.findAllByUserId).mockResolvedValue([]);
+  it("AC-N6: returns empty notes array and zero total when no active notes", async () => {
+    vi.mocked(NoteRepository.findPaginated).mockResolvedValue({ notes: [], total: 0 });
 
-    const result = await NoteService.listNotes("user-uuid-1");
+    const result = await NoteService.listNotes("user-uuid-1", defaultQuery);
 
-    expect(result).toEqual([]);
+    expect(result.notes).toEqual([]);
+    expect(result.meta.total).toBe(0);
+    expect(result.meta.totalPages).toBe(0);
   });
 });
 

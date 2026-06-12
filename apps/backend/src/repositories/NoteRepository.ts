@@ -84,4 +84,36 @@ export const NoteRepository = {
       data: { deletedAt: new Date() },
     });
   },
+
+  async findPaginated(
+    userId: string,
+    params: {
+      page: number;
+      limit: number;
+      sortBy: "createdAt" | "updatedAt";
+      sortDir: "asc" | "desc";
+      tagIds: string[];
+    }
+  ): Promise<{ notes: INoteRecord[]; total: number }> {
+    const where = {
+      userId,
+      deletedAt: null,
+      ...(params.tagIds.length > 0
+        ? { noteTags: { some: { tagId: { in: params.tagIds } } } }
+        : {}),
+    };
+
+    const [rows, total] = await prisma.$transaction([
+      prisma.note.findMany({
+        where,
+        include: noteInclude,
+        orderBy: { [params.sortBy]: params.sortDir },
+        skip: (params.page - 1) * params.limit,
+        take: params.limit,
+      }),
+      prisma.note.count({ where }),
+    ]);
+
+    return { notes: rows.map(mapRecord), total };
+  },
 };
