@@ -29,8 +29,25 @@ export const updateNoteSchema = z.object({
   content: z.string().optional(),
 });
 
+const hexColorSchema = z
+  .string()
+  .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color")
+  .nullable()
+  .optional();
+
 export const createTagSchema = z.object({
   name: z.string().min(1).max(50).trim(),
+  color: hexColorSchema,
+});
+
+export const updateTagSchema = z.object({
+  name: z.string().min(1).max(50).trim().optional(),
+  color: hexColorSchema,
+});
+
+export const listTagsQuerySchema = z.object({
+  sortBy: z.enum(["name", "noteCount"]).default("name"),
+  sortDir: z.enum(["asc", "desc"]).default("asc"),
 });
 
 export type TRegisterInput = z.infer<typeof registerSchema>;
@@ -39,6 +56,8 @@ export type TRefreshInput = z.infer<typeof refreshSchema>;
 export type TCreateNoteInput = z.infer<typeof createNoteSchema>;
 export type TUpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type TCreateTagInput = z.infer<typeof createTagSchema>;
+export type TUpdateTagInput = z.infer<typeof updateTagSchema>;
+export type TListTagsQuery = z.infer<typeof listTagsQuerySchema>;
 
 export const listNotesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

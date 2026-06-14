@@ -39,7 +39,7 @@ const mockNoteRecord = {
   deletedAt: null as Date | null,
   createdAt: now,
   updatedAt: now,
-  tags: [] as Array<{ id: string; userId: string; name: string; createdAt: Date }>,
+  tags: [] as Array<{ id: string; userId: string; name: string; color: string | null; noteCount: number; createdAt: Date }>,
 };
 
 const mockNoteResponse = {

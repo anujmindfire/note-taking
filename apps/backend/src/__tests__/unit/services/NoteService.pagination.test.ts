@@ -29,7 +29,7 @@ const makeNoteRecord = (overrides: Partial<{
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  tags: Array<{ id: string; userId: string; name: string; createdAt: Date }>;
+  tags: Array<{ id: string; userId: string; name: string; color: string | null; noteCount: number; createdAt: Date }>;
 }> = {}) => ({
   id: "note-uuid-1",
   userId: "user-uuid-1",
@@ -38,7 +38,7 @@ const makeNoteRecord = (overrides: Partial<{
   deletedAt: null as Date | null,
   createdAt: now,
   updatedAt: now,
-  tags: [] as Array<{ id: string; userId: string; name: string; createdAt: Date }>,
+  tags: [] as Array<{ id: string; userId: string; name: string; color: string | null; noteCount: number; createdAt: Date }>,
   ...overrides,
 });
 
@@ -148,7 +148,7 @@ describe("NoteService.listNotes — pagination", () => {
   it("AC-P7: mapToResponse converts Date fields to ISO strings", async () => {
     const tagDate = new Date("2024-05-01T08:00:00.000Z");
     const noteRecord = makeNoteRecord({
-      tags: [{ id: "tag-uuid-1", userId: "user-uuid-1", name: "work", createdAt: tagDate }],
+      tags: [{ id: "tag-uuid-1", userId: "user-uuid-1", name: "work", color: null, noteCount: 2, createdAt: tagDate }],
     });
     vi.mocked(NoteRepository.findPaginated).mockResolvedValue({ notes: [noteRecord], total: 1 });
 

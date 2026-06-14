@@ -8,12 +8,29 @@ interface INoteRecord {
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  tags: Array<{ id: string; userId: string; name: string; createdAt: Date }>;
+  tags: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    color: string | null;
+    noteCount: number;
+    createdAt: Date;
+  }>;
 }
 
 const noteInclude = {
   noteTags: {
-    include: { tag: true },
+    include: {
+      tag: {
+        include: {
+          _count: {
+            select: {
+              noteTags: { where: { note: { deletedAt: null } } },
+            },
+          },
+        },
+      },
+    },
   },
 } as const;
 
@@ -25,7 +42,16 @@ function mapRecord(note: {
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  noteTags: Array<{ tag: { id: string; userId: string; name: string; createdAt: Date } }>;
+  noteTags: Array<{
+    tag: {
+      id: string;
+      userId: string;
+      name: string;
+      color: string | null;
+      createdAt: Date;
+      _count: { noteTags: number };
+    };
+  }>;
 }): INoteRecord {
   return {
     id: note.id,
@@ -39,6 +65,8 @@ function mapRecord(note: {
       id: nt.tag.id,
       userId: nt.tag.userId,
       name: nt.tag.name,
+      color: nt.tag.color,
+      noteCount: nt.tag._count.noteTags,
       createdAt: nt.tag.createdAt,
     })),
   };

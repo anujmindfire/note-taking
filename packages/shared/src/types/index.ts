@@ -33,6 +33,8 @@ export interface ITagResponse {
   id: string;
   userId: string;
   name: string;
+  color: string | null;
+  noteCount: number;
   createdAt: string;
 }
 

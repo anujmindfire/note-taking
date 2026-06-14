@@ -3,6 +3,7 @@ import cors from "cors";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { authRoutes } from "./routes/authRoutes.js";
 import { noteRoutes } from "./routes/noteRoutes.js";
+import { tagRoutes } from "./routes/tagRoutes.js";
 
 export function createApp(): Application {
   const app = express();
@@ -16,7 +17,7 @@ export function createApp(): Application {
 
   app.use("/api/auth", authRoutes);
   app.use("/api/notes", noteRoutes);
-  // app.use("/api/tags", tagRoutes);
+  app.use("/api/tags", tagRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

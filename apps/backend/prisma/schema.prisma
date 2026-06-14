@@ -43,6 +43,7 @@ model Tag {
   userId         String
   name           String
   normalizedName String
+  color          String?
   createdAt      DateTime @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -2,6 +2,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import { validate, validateQuery } from "../middleware/validate.js";
 import { requireAuth } from "../middleware/auth.js";
 import { NoteService } from "../services/NoteService.js";
+import { TagService } from "../services/TagService.js";
 import { createNoteSchema, listNotesQuerySchema, updateNoteSchema } from "@noteapp/shared";
 import type { TCreateNoteInput, TListNotesQuery, TUpdateNoteInput } from "@noteapp/shared";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
@@ -54,6 +55,34 @@ router.delete("/:id", requireAuth, async (req, res, next) => {
     const { userId } = (req as AuthenticatedRequest).user;
     await NoteService.deleteNote(req.params.id as string, userId);
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/:id/tags/:tagId", requireAuth, async (req, res, next) => {
+  try {
+    const { userId } = (req as AuthenticatedRequest).user;
+    const note = await TagService.attachTag(
+      req.params.id as string,
+      req.params.tagId as string,
+      userId
+    );
+    res.json({ data: note });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete("/:id/tags/:tagId", requireAuth, async (req, res, next) => {
+  try {
+    const { userId } = (req as AuthenticatedRequest).user;
+    const note = await TagService.detachTag(
+      req.params.id as string,
+      req.params.tagId as string,
+      userId
+    );
+    res.json({ data: note });
   } catch (err) {
     next(err);
   }
