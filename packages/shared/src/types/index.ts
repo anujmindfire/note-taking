@@ -70,3 +70,13 @@ export interface IErrorResponse {
 export interface ISearchResult extends INoteResponse {
   highlight: string;
 }
+
+export interface ISharedLinkResponse {
+  id: string;
+  noteId: string;
+  token: string;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  viewCount: number;
+  createdAt: string;
+}

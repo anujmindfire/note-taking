@@ -29,8 +29,9 @@ model Note {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  noteTags NoteTag[]
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags    NoteTag[]
+  sharedLinks SharedLink[]
 
   @@index([userId])
   @@index([deletedAt])
@@ -86,4 +87,19 @@ model OtpToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model SharedLink {
+  id        String    @id @default(uuid())
+  noteId    String
+  token     String    @unique
+  expiresAt DateTime?
+  revokedAt DateTime?
+  viewCount Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([noteId])
 }

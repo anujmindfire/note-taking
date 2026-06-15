@@ -5,6 +5,8 @@ import { authRoutes } from "./routes/authRoutes.js";
 import { noteRoutes } from "./routes/noteRoutes.js";
 import { tagRoutes } from "./routes/tagRoutes.js";
 import { searchRoutes } from "./routes/searchRoutes.js";
+import { shareRoutes } from "./routes/shareRoutes.js";
+import { publicShareRoutes } from "./routes/publicShareRoutes.js";
 
 export function createApp(): Application {
   const app = express();
@@ -20,6 +22,8 @@ export function createApp(): Application {
   app.use("/api/notes", noteRoutes);
   app.use("/api/tags", tagRoutes);
   app.use("/api/search", searchRoutes);
+  app.use("/api/shares", shareRoutes);
+  app.use("/api/share", publicShareRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
