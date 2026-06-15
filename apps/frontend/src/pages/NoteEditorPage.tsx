@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { ArrowLeft, Share2, X } from "lucide-react";
+import { ArrowLeft, Clock, Share2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,8 @@ import { useDetachTag } from "@/hooks/useDetachTag";
 import { useTags } from "@/hooks/useTags";
 import { getErrorMessage } from "@/lib/errorUtils";
 import { ShareModal } from "@/components/ShareModal";
+import { VersionHistoryDrawer } from "@/components/VersionHistoryDrawer";
+import type { INoteResponse } from "@noteapp/shared";
 
 export function NoteEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +38,7 @@ export function NoteEditorPage() {
 
   const { saveStatus, initLastSaved } = useAutosave(id!, title, content);
   const [shareOpen, setShareOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const attachTag = useAttachTag();
   const detachTag = useDetachTag();
@@ -74,6 +77,12 @@ export function NoteEditorPage() {
   function handleAttach(tagId: string) {
     if (!id) return;
     attachTag.mutate({ noteId: id, tagId });
+  }
+
+  function handleRestore(note: INoteResponse) {
+    setTitle(note.title);
+    editor?.commands.setContent(note.content, false);
+    initLastSaved(note.title, note.content);
   }
 
   function handleDetach(tagId: string) {
@@ -127,6 +136,16 @@ export function NoteEditorPage() {
           Share
         </Button>
 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setHistoryOpen(true)}
+          className="shrink-0"
+        >
+          <Clock className="mr-1.5 h-4 w-4" />
+          History
+        </Button>
+
         {statusLabel && (
           <span
             className={
@@ -158,6 +177,15 @@ export function NoteEditorPage() {
 
       {id && (
         <ShareModal noteId={id} open={shareOpen} onOpenChange={setShareOpen} />
+      )}
+
+      {id && (
+        <VersionHistoryDrawer
+          noteId={id}
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          onRestore={handleRestore}
+        />
       )}
 
       {/* Tag panel */}
