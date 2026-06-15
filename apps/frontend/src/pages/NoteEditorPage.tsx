@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Share2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { useAttachTag } from "@/hooks/useAttachTag";
 import { useDetachTag } from "@/hooks/useDetachTag";
 import { useTags } from "@/hooks/useTags";
 import { getErrorMessage } from "@/lib/errorUtils";
+import { ShareModal } from "@/components/ShareModal";
 
 export function NoteEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +35,7 @@ export function NoteEditorPage() {
   const initializedRef = useRef(false);
 
   const { saveStatus, initLastSaved } = useAutosave(id!, title, content);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const attachTag = useAttachTag();
   const detachTag = useDetachTag();
@@ -115,6 +117,16 @@ export function NoteEditorPage() {
           />
         )}
 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShareOpen(true)}
+          className="shrink-0"
+        >
+          <Share2 className="mr-1.5 h-4 w-4" />
+          Share
+        </Button>
+
         {statusLabel && (
           <span
             className={
@@ -143,6 +155,10 @@ export function NoteEditorPage() {
           />
         )}
       </div>
+
+      {id && (
+        <ShareModal noteId={id} open={shareOpen} onOpenChange={setShareOpen} />
+      )}
 
       {/* Tag panel */}
       <div className="border-t px-4 py-3">
