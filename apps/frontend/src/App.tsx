@@ -5,6 +5,7 @@ import { useAuthStore } from "./stores/authStore.js";
 import { LoginPage } from "./pages/LoginPage.js";
 import { RegisterPage } from "./pages/RegisterPage.js";
 import { NotesPage } from "./pages/NotesPage.js";
+import { NoteEditorPage } from "./pages/NoteEditorPage.js";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -48,6 +49,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <NotesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes/:id"
+            element={
+              <ProtectedRoute>
+                <NoteEditorPage />
               </ProtectedRoute>
             }
           />

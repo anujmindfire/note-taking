@@ -73,6 +73,13 @@ function renderWithDeleteDialog(noteId: string | null, open: boolean) {
   return { onOpenChange };
 }
 
+// Mock useNavigate for S19/S20 tests
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return { ...actual, useNavigate: () => mockNavigate };
+});
+
 describe("NoteCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -133,5 +140,28 @@ describe("NoteCard", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Note deleted");
     });
+  });
+
+  it("AC-S19: Click NoteCard body — navigates to /notes/:id", () => {
+    renderWithDialog(vi.fn());
+
+    // The card body has role="button"
+    const card = screen.getByRole("button", { name: /test note/i });
+    fireEvent.click(card);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/notes/note-1");
+  });
+
+  it("AC-S20: Click delete button — stopPropagation prevents navigation; onDelete called", () => {
+    const onDelete = vi.fn();
+    renderWithDialog(onDelete);
+
+    const deleteButton = screen.getByRole("button", { name: /delete note/i });
+    fireEvent.click(deleteButton);
+
+    // onDelete should have been called with the note id
+    expect(onDelete).toHaveBeenCalledWith("note-1");
+    // Navigation should NOT have been triggered by the delete button click
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

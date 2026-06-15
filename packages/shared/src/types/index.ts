@@ -89,3 +89,5 @@ export interface INoteVersion {
   content: string;
   createdAt: string; // ISO 8601
 }
+
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
