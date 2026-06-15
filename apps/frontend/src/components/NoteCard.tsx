@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getContentPreview } from "@/lib/noteUtils";
@@ -17,10 +18,19 @@ function formatDate(iso: string): string {
 }
 
 export function NoteCard({ note, onDelete }: NoteCardProps) {
+  const navigate = useNavigate();
   const preview = getContentPreview(note.content);
 
   return (
-    <div className="group relative flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/notes/${note.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") navigate(`/notes/${note.id}`);
+      }}
+      className="group relative flex cursor-pointer flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+    >
       <div className="flex items-start justify-between gap-2">
         <h3 className="line-clamp-1 text-sm font-semibold leading-snug">
           {note.title || "Untitled"}
@@ -28,7 +38,10 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
         <button
           type="button"
           aria-label="Delete note"
-          onClick={() => onDelete(note.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(note.id);
+          }}
           className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
         >
           <Trash2 className="h-4 w-4" />

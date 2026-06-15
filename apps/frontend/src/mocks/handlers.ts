@@ -71,8 +71,51 @@ export const handlers = [
     return HttpResponse.json({ data: mockNote }, { status: 201 });
   }),
 
+  http.get("/api/notes/:id", ({ params }) => {
+    const { id } = params;
+    if (id === "not-found") {
+      return HttpResponse.json(
+        { error: { code: "NOTE_NOT_FOUND", message: "Note not found" } },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json({ data: { ...mockNote, id: String(id) } }, { status: 200 });
+  }),
+
+  http.patch("/api/notes/:id", async ({ params, request }) => {
+    const { id } = params;
+    const body = (await request.json()) as { title?: string; content?: string };
+    return HttpResponse.json(
+      {
+        data: {
+          ...mockNote,
+          id: String(id),
+          title: body.title ?? mockNote.title,
+          content: body.content ?? mockNote.content,
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      { status: 200 }
+    );
+  }),
+
   http.delete("/api/notes/:id", () => {
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.post("/api/notes/:noteId/tags/:tagId", ({ params }) => {
+    const tag = { ...mockTag, id: String(params.tagId) };
+    return HttpResponse.json(
+      { data: { ...mockNote, id: String(params.noteId), tags: [tag] } },
+      { status: 200 }
+    );
+  }),
+
+  http.delete("/api/notes/:noteId/tags/:tagId", ({ params }) => {
+    return HttpResponse.json(
+      { data: { ...mockNote, id: String(params.noteId), tags: [] } },
+      { status: 200 }
+    );
   }),
 
   http.get("/api/tags", () => {
