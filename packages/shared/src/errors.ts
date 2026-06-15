@@ -11,6 +11,9 @@ export const ErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   OTP_EXPIRED: "OTP_EXPIRED",
   OTP_INVALID: "OTP_INVALID",
+  SHARE_NOT_FOUND: "SHARE_NOT_FOUND",
+  SHARE_REVOKED: "SHARE_REVOKED",
+  SHARE_EXPIRED: "SHARE_EXPIRED",
 } as const;
 
 export type TErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

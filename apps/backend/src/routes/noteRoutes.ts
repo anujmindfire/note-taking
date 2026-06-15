@@ -3,8 +3,9 @@ import { validate, validateQuery } from "../middleware/validate.js";
 import { requireAuth } from "../middleware/auth.js";
 import { NoteService } from "../services/NoteService.js";
 import { TagService } from "../services/TagService.js";
-import { createNoteSchema, listNotesQuerySchema, updateNoteSchema } from "@noteapp/shared";
-import type { TCreateNoteInput, TListNotesQuery, TUpdateNoteInput } from "@noteapp/shared";
+import { ShareLinkService } from "../services/ShareLinkService.js";
+import { createNoteSchema, listNotesQuerySchema, updateNoteSchema, createShareLinkSchema } from "@noteapp/shared";
+import type { TCreateNoteInput, TListNotesQuery, TUpdateNoteInput, TCreateShareLinkInput } from "@noteapp/shared";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
 
 const router: ExpressRouter = Router();
@@ -83,6 +84,30 @@ router.delete("/:id/tags/:tagId", requireAuth, async (req, res, next) => {
       userId
     );
     res.json({ data: note });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/:id/shares", requireAuth, validate(createShareLinkSchema), async (req, res, next) => {
+  try {
+    const { userId } = (req as AuthenticatedRequest).user;
+    const link = await ShareLinkService.generateLink(
+      req.params.id as string,
+      userId,
+      req.body as TCreateShareLinkInput
+    );
+    res.status(201).json({ data: link });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/:id/shares", requireAuth, async (req, res, next) => {
+  try {
+    const { userId } = (req as AuthenticatedRequest).user;
+    const links = await ShareLinkService.listLinks(req.params.id as string, userId);
+    res.json({ data: links });
   } catch (err) {
     next(err);
   }

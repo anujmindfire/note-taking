@@ -105,3 +105,18 @@ export const searchQuerySchema = z.object({
 });
 
 export type TSearchQuery = z.infer<typeof searchQuerySchema>;
+
+export const createShareLinkSchema = z.object({
+  expiresAt: z
+    .string()
+    .datetime({ message: "expiresAt must be a valid ISO 8601 datetime" })
+    .refine((v) => new Date(v) > new Date(), {
+      message: "expiresAt must be in the future",
+    })
+    .refine((v) => new Date(v) <= new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), {
+      message: "expiresAt must not exceed 1 year from now",
+    })
+    .optional(),
+});
+
+export type TCreateShareLinkInput = z.infer<typeof createShareLinkSchema>;
