@@ -11,8 +11,15 @@ vi.mock("../../../repositories/NoteRepository.js", () => ({
   },
 }));
 
+vi.mock("../../../services/VersionService.js", () => ({
+  VersionService: {
+    snapshot: vi.fn(),
+  },
+}));
+
 import { NoteRepository } from "../../../repositories/NoteRepository.js";
 import { NoteService } from "../../../services/NoteService.js";
+import { VersionService } from "../../../services/VersionService.js";
 import { ErrorCode } from "@noteapp/shared";
 import type { TListNotesQuery } from "@noteapp/shared";
 
@@ -277,5 +284,47 @@ describe("NoteService.deleteNote", () => {
     });
 
     expect(NoteRepository.softDelete).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// NoteService.createNote — snapshot side-effect (AB-1009)
+// ---------------------------------------------------------------------------
+
+describe("NoteService.createNote — snapshot side-effect (AB-1009)", () => {
+  it("AC-S1: Snapshot on note creation — VersionService.snapshot called with note id, title, and content", async () => {
+    vi.mocked(NoteRepository.create).mockResolvedValue(mockNoteRecord);
+    vi.mocked(VersionService.snapshot).mockResolvedValue(undefined);
+
+    await NoteService.createNote("user-uuid-1", { title: "My Note", content: "Hello world" });
+
+    expect(VersionService.snapshot).toHaveBeenCalledTimes(1);
+    expect(VersionService.snapshot).toHaveBeenCalledWith(
+      mockNoteRecord.id,
+      mockNoteRecord.title,
+      mockNoteRecord.content
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// NoteService.updateNote — snapshot side-effect (AB-1009)
+// ---------------------------------------------------------------------------
+
+describe("NoteService.updateNote — snapshot side-effect (AB-1009)", () => {
+  it("AC-S2: Snapshot on note update — VersionService.snapshot called with updated note id, title, and content", async () => {
+    const updatedRecord = { ...mockNoteRecord, title: "Updated Title", content: "Updated content", updatedAt: later };
+    vi.mocked(NoteRepository.findByIdAndUserId).mockResolvedValue(mockNoteRecord);
+    vi.mocked(NoteRepository.update).mockResolvedValue(updatedRecord);
+    vi.mocked(VersionService.snapshot).mockResolvedValue(undefined);
+
+    await NoteService.updateNote("note-uuid-1", "user-uuid-1", { title: "Updated Title", content: "Updated content" });
+
+    expect(VersionService.snapshot).toHaveBeenCalledTimes(1);
+    expect(VersionService.snapshot).toHaveBeenCalledWith(
+      updatedRecord.id,
+      updatedRecord.title,
+      updatedRecord.content
+    );
   });
 });

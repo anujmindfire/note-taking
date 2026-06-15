@@ -1,6 +1,7 @@
 import { ErrorCode } from "@noteapp/shared";
 import type { INoteResponse, INotesPageMeta, TCreateNoteInput, TListNotesQuery, TUpdateNoteInput } from "@noteapp/shared";
 import { NoteRepository } from "../repositories/NoteRepository.js";
+import { VersionService } from "./VersionService.js";
 import { createError } from "../middleware/errorHandler.js";
 
 function mapToResponse(note: {
@@ -68,6 +69,11 @@ export const NoteService = {
 
   async createNote(userId: string, data: TCreateNoteInput): Promise<INoteResponse> {
     const note = await NoteRepository.create({ userId, title: data.title, content: data.content });
+    try {
+      await VersionService.snapshot(note.id, note.title, note.content);
+    } catch (err) {
+      console.warn("[NoteService] snapshot failed after create:", err);
+    }
     return mapToResponse(note);
   },
 
@@ -77,6 +83,11 @@ export const NoteService = {
       throw createError(404, ErrorCode.NOTE_NOT_FOUND, "Note not found");
     }
     const updated = await NoteRepository.update(id, data);
+    try {
+      await VersionService.snapshot(updated.id, updated.title, updated.content);
+    } catch (err) {
+      console.warn("[NoteService] snapshot failed after update:", err);
+    }
     return mapToResponse(updated);
   },
 

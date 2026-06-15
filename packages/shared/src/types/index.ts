@@ -80,3 +80,12 @@ export interface ISharedLinkResponse {
   viewCount: number;
   createdAt: string;
 }
+
+export interface INoteVersion {
+  id: string;
+  noteId: string;
+  version: number;
+  title: string;
+  content: string;
+  createdAt: string; // ISO 8601
+}

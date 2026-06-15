@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { NoteService } from "../services/NoteService.js";
 import { TagService } from "../services/TagService.js";
 import { ShareLinkService } from "../services/ShareLinkService.js";
+import { versionRoutes } from "./versionRoutes.js";
 import { createNoteSchema, listNotesQuerySchema, updateNoteSchema, createShareLinkSchema } from "@noteapp/shared";
 import type { TCreateNoteInput, TListNotesQuery, TUpdateNoteInput, TCreateShareLinkInput } from "@noteapp/shared";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
@@ -112,5 +113,7 @@ router.get("/:id/shares", requireAuth, async (req, res, next) => {
     next(err);
   }
 });
+
+router.use("/:id/versions", versionRoutes);
 
 export { router as noteRoutes };

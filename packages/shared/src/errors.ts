@@ -14,6 +14,7 @@ export const ErrorCode = {
   SHARE_NOT_FOUND: "SHARE_NOT_FOUND",
   SHARE_REVOKED: "SHARE_REVOKED",
   SHARE_EXPIRED: "SHARE_EXPIRED",
+  VERSION_NOT_FOUND: "VERSION_NOT_FOUND",
 } as const;
 
 export type TErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
