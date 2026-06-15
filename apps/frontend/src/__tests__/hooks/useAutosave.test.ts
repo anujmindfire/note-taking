@@ -561,10 +561,8 @@ describe("useAutosave", () => {
     await advanceAndFlush(3100);
     expect(callCount).toBe(2);
 
-    // After both attempts fail the status is never "saved"
-    // The hook transitions through "error" → "idle" due to internal effect
-    expect(result.current.saveStatus).not.toBe("saved");
-    expect(result.current.saveStatus).not.toBe("saving");
+    // After both attempts fail the status is "error" and stays there until the user edits again
+    expect(result.current.saveStatus).toBe("error");
 
     vi.useRealTimers();
   }, 15000);
@@ -641,4 +639,40 @@ describe("useAutosave", () => {
 
     vi.useRealTimers();
   }, 20000);
+
+  it("SDS-c4: No-auth guard — zero PATCH when accessToken is null", async () => {
+    vi.useFakeTimers();
+
+    // Override the beforeEach auth with no auth
+    useAuthStore.getState().clearAuth();
+
+    let patchCallCount = 0;
+    server.use(
+      http.patch("/api/notes/:id", async () => {
+        patchCallCount++;
+        return HttpResponse.json({ data: {} }, { status: 200 });
+      })
+    );
+
+    const { result, rerender } = renderHook(
+      ({ title, content }: { title: string; content: string }) =>
+        useAutosave("note-1", title, content),
+      {
+        wrapper: createWrapper(),
+        initialProps: { title: "Original Title", content: "Original content" },
+      }
+    );
+
+    act(() => {
+      result.current.initLastSaved("Original Title", "Original content");
+    });
+
+    rerender({ title: "New Title", content: "Original content" });
+
+    await advanceAndFlush(2100);
+
+    expect(patchCallCount).toBe(0);
+
+    vi.useRealTimers();
+  }, 10000);
 });

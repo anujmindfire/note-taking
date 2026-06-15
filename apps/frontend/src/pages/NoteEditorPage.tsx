@@ -25,6 +25,8 @@ export function NoteEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  // id! is safe: this component is only mounted under the /notes/:id route,
+  // so useParams always resolves a non-empty string here
   const { data: note, isLoading, isError, error } = useNote(id!);
 
   const [title, setTitle] = useState("");

@@ -67,8 +67,9 @@ describe("useNote", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    // The error should have come from the 404 NOTE_NOT_FOUND response
-    expect(result.current.error).toBeTruthy();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err = result.current.error as any;
+    expect(err?.response?.data?.error?.code).toBe("NOTE_NOT_FOUND");
   });
 
   it("AC-S3: Loading state — isLoading is true before data arrives", async () => {
