@@ -51,6 +51,7 @@ export function ShareModal({ noteId, open, onOpenChange }: IShareModalProps) {
       : {};
     createLink.mutate(body, {
       onSuccess: () => setSelectedDate(undefined),
+      onError: () => setSelectedDate(undefined),
     });
   }
 

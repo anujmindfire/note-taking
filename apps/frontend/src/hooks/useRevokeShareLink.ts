@@ -18,6 +18,7 @@ export function useRevokeShareLink(noteId: string) {
     },
     onError: (err) => {
       toast.error(getErrorMessage(err));
+      void queryClient.invalidateQueries({ queryKey: ["shares", noteId] });
     },
   });
 }
