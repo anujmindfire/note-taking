@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { useAuthStore } from "./stores/authStore.js";
 import { LoginPage } from "./pages/LoginPage.js";
 import { RegisterPage } from "./pages/RegisterPage.js";
+import { NotesPage } from "./pages/NotesPage.js";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -46,7 +47,7 @@ export default function App() {
             path="/notes"
             element={
               <ProtectedRoute>
-                <div>Notes page — coming soon</div>
+                <NotesPage />
               </ProtectedRoute>
             }
           />

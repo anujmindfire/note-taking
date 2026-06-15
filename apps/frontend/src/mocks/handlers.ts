@@ -1,5 +1,25 @@
 import { http, HttpResponse } from "msw";
 
+const mockNote = {
+  id: "note-1",
+  userId: "user-1",
+  title: "Test Note",
+  content: "Test content",
+  deletedAt: null,
+  createdAt: "2024-01-01T00:00:00.000Z",
+  updatedAt: "2024-01-02T00:00:00.000Z",
+  tags: [],
+};
+
+const mockTag = {
+  id: "tag-1",
+  userId: "user-1",
+  name: "Work",
+  color: "#3b82f6",
+  noteCount: 1,
+  createdAt: "2024-01-01T00:00:00.000Z",
+};
+
 export const handlers = [
   http.post("/api/auth/register", () => {
     return HttpResponse.json({ data: { userId: "user-1" } }, { status: 201 });
@@ -35,5 +55,27 @@ export const handlers = [
       { data: { message: "Password reset" } },
       { status: 200 }
     );
+  }),
+
+  http.get("/api/notes", () => {
+    return HttpResponse.json(
+      {
+        data: [mockNote],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      },
+      { status: 200 }
+    );
+  }),
+
+  http.post("/api/notes", () => {
+    return HttpResponse.json({ data: mockNote }, { status: 201 });
+  }),
+
+  http.delete("/api/notes/:id", () => {
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get("/api/tags", () => {
+    return HttpResponse.json({ data: [mockTag] }, { status: 200 });
   }),
 ];
