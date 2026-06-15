@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage.js";
 import { RegisterPage } from "./pages/RegisterPage.js";
 import { NotesPage } from "./pages/NotesPage.js";
 import { NoteEditorPage } from "./pages/NoteEditorPage.js";
+import { SharedNotePage } from "./pages/SharedNotePage.js";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -60,6 +61,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/shared/:token" element={<SharedNotePage />} />
           <Route path="*" element={<Navigate to="/notes" replace />} />
         </Routes>
         <Toaster position="top-right" richColors />
