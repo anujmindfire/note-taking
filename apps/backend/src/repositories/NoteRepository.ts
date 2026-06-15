@@ -89,6 +89,29 @@ export const NoteRepository = {
     return note ? mapRecord(note) : null;
   },
 
+  async findByIdAndUserIdIncludeDeleted(
+    id: string,
+    userId: string
+  ): Promise<INoteRecord | null> {
+    const note = await prisma.note.findFirst({
+      where: { id, userId },
+      include: noteInclude,
+    });
+    return note ? mapRecord(note) : null;
+  },
+
+  async restore(
+    id: string,
+    data: { title: string; content: string }
+  ): Promise<INoteRecord> {
+    const note = await prisma.note.update({
+      where: { id },
+      data: { title: data.title, content: data.content, deletedAt: null },
+      include: noteInclude,
+    });
+    return mapRecord(note);
+  },
+
   async create(data: { userId: string; title: string; content: string }): Promise<INoteRecord> {
     const note = await prisma.note.create({
       data,
