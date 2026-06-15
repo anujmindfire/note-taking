@@ -89,3 +89,19 @@ export const resetPasswordSchema = z.object({
 
 export type TForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type TResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const searchQuerySchema = z.object({
+  q: z
+    .string()
+    .min(1)
+    .max(500)
+    .refine((v) => v.trim().length > 0, { message: "Search query cannot be whitespace only" }),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  tagId: z
+    .union([z.string().uuid(), z.array(z.string().uuid())])
+    .optional()
+    .transform((v) => (v === undefined ? [] : Array.isArray(v) ? v : [v])),
+});
+
+export type TSearchQuery = z.infer<typeof searchQuerySchema>;

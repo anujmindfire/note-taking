@@ -66,3 +66,7 @@ export interface IErrorResponse {
     fields?: string[];
   };
 }
+
+export interface ISearchResult extends INoteResponse {
+  highlight: string;
+}
