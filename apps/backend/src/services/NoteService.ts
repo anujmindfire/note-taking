@@ -11,7 +11,14 @@ function mapToResponse(note: {
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  tags: Array<{ id: string; userId: string; name: string; createdAt: Date }>;
+  tags: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    color: string | null;
+    noteCount: number;
+    createdAt: Date;
+  }>;
 }): INoteResponse {
   return {
     id: note.id,
@@ -25,6 +32,8 @@ function mapToResponse(note: {
       id: t.id,
       userId: t.userId,
       name: t.name,
+      color: t.color,
+      noteCount: t.noteCount,
       createdAt: t.createdAt.toISOString(),
     })),
   };
