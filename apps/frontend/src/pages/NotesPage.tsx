@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { TagSidebar } from "@/components/TagSidebar";
 import { NoteCard } from "@/components/NoteCard";
+import { SearchResultCard } from "@/components/SearchResultCard";
 import { DeleteNoteDialog } from "@/components/DeleteNoteDialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -15,7 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNotes } from "@/hooks/useNotes";
+import { useSearch } from "@/hooks/useSearch";
 import { useCreateNote } from "@/hooks/useCreateNote";
+import type { ISearchResult } from "@noteapp/shared";
 
 type SortKey = "updatedAt-desc" | "updatedAt-asc" | "createdAt-desc" | "createdAt-asc";
 
@@ -36,14 +40,44 @@ export function NotesPage() {
   const sortDir = (searchParams.get("sortDir") ?? "desc") as "asc" | "desc";
   const tagIds = searchParams.getAll("tagId[]");
 
+  // URL-driven search query (debounced value)
+  const q = searchParams.get("q") ?? "";
+  const isSearchMode = q.trim().length > 0;
+
+  // Raw input state — initialised from URL so direct visits to /notes?q=foo pre-fill the input
+  const [rawQuery, setRawQuery] = useState<string>(q);
+
+  // Debounce rawQuery → URL (400ms)
+  useEffect(() => {
+    const trimmed = rawQuery.trim();
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (trimmed === "") {
+        params.delete("q");
+        params.set("page", "1");
+      } else {
+        params.set("q", trimmed);
+        params.set("page", "1");
+      }
+      setSearchParams(params, { replace: true });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [rawQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const sortKey: SortKey = `${sortBy}-${sortDir}`;
 
-  const query = { page, limit: 20, sortBy, sortDir, tagId: tagIds };
-  const { data, isLoading } = useNotes(query);
-  const createMutation = useCreateNote();
+  const notesQuery = useNotes({ page, limit: 20, sortBy, sortDir, tagId: tagIds });
+  const searchQuery = useSearch({ q, page, limit: 20, tagId: tagIds });
 
-  const notes = data?.notes ?? [];
-  const meta = data?.meta ?? { total: 0, page: 1, limit: 20, totalPages: 1 };
+  const notes = isSearchMode
+    ? (searchQuery.data?.results ?? [])
+    : (notesQuery.data?.notes ?? []);
+  const meta = isSearchMode
+    ? (searchQuery.data?.meta ?? { total: 0, page: 1, limit: 20, totalPages: 1 })
+    : (notesQuery.data?.meta ?? { total: 0, page: 1, limit: 20, totalPages: 1 });
+  const isLoading = isSearchMode ? searchQuery.isLoading : notesQuery.isLoading;
+
+  const createMutation = useCreateNote();
 
   function handleTagToggle(id: string) {
     const next = tagIds.includes(id)
@@ -86,19 +120,43 @@ export function NotesPage() {
         <main className="flex flex-1 flex-col overflow-y-auto p-6">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h1 className="text-xl font-semibold">Notes</h1>
-            <div className="flex items-center gap-3">
-              <Select value={sortKey} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-52" aria-label="Sort notes">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-1 items-center gap-3">
+              <div className="relative max-w-sm flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={rawQuery}
+                  onChange={(e) => setRawQuery(e.target.value)}
+                  placeholder="Search notes…"
+                  className="pl-8 pr-8"
+                  aria-label="Search notes"
+                />
+                {rawQuery && (
+                  <button
+                    type="button"
+                    aria-label="Clear search"
+                    onClick={() => setRawQuery("")}
+                    className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {!isSearchMode && (
+                <Select value={sortKey} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-52" aria-label="Sort notes">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
               <Button
                 onClick={() =>
                   createMutation.mutate({ title: "Untitled", content: "" })
@@ -119,28 +177,51 @@ export function NotesPage() {
             </div>
           ) : notes.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-              <p className="text-muted-foreground">
-                No notes yet. Create your first note.
-              </p>
-              <Button
-                onClick={() =>
-                  createMutation.mutate({ title: "Untitled", content: "" })
-                }
-                disabled={createMutation.isPending}
-              >
-                <Plus className="mr-1.5 h-4 w-4" />
-                New Note
-              </Button>
+              {isSearchMode ? (
+                <p className="text-muted-foreground">
+                  No notes match &ldquo;{q}&rdquo;.{" "}
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() => setRawQuery("")}
+                  >
+                    Clear search
+                  </button>
+                </p>
+              ) : (
+                <>
+                  <p className="text-muted-foreground">
+                    No notes yet. Create your first note.
+                  </p>
+                  <Button
+                    onClick={() =>
+                      createMutation.mutate({ title: "Untitled", content: "" })
+                    }
+                    disabled={createMutation.isPending}
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" />
+                    New Note
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {notes.map((note) => (
-                <NoteCard
-                  key={note.id}
-                  note={note}
-                  onDelete={(id) => handleDeleteClick(id, note.title)}
-                />
-              ))}
+              {isSearchMode
+                ? (notes as ISearchResult[]).map((result) => (
+                    <SearchResultCard
+                      key={result.id}
+                      result={result}
+                      onDelete={(id) => handleDeleteClick(id, result.title)}
+                    />
+                  ))
+                : notes.map((note) => (
+                    <NoteCard
+                      key={note.id}
+                      note={note}
+                      onDelete={(id) => handleDeleteClick(id, note.title)}
+                    />
+                  ))}
             </div>
           )}
 
