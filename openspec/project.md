@@ -86,34 +86,47 @@ Repository     → ALL Prisma queries; returns domain types (not raw Prisma)
 
 ## 5. API Surface (built so far)
 
-| Method | Path                         | Auth | Success                                   |
-| :----- | :--------------------------- | :--- | :---------------------------------------- |
-| POST   | `/api/auth/register`         | No   | 201 `{ userId }`                          |
-| POST   | `/api/auth/login`            | No   | 200 `{ accessToken, refreshToken, user }` |
-| POST   | `/api/auth/logout`           | Yes  | 204                                       |
-| POST   | `/api/auth/refresh`          | No   | 200 `{ accessToken }`                     |
-| GET    | `/api/notes`                 | Yes  | 200 `[...notes]`                          |
-| POST   | `/api/notes`                 | Yes  | 201 note                                  |
-| GET    | `/api/notes/:id`             | Yes  | 200 note                                  |
-| PATCH  | `/api/notes/:id`             | Yes  | 200 note                                  |
-| DELETE | `/api/notes/:id`             | Yes  | 204 (soft-delete)                         |
-| GET    | `/api/tags`                  | Yes  | 200 `[...tags]`                           |
-| POST   | `/api/tags`                  | Yes  | 201 `{ id, name }`                        |
-| DELETE | `/api/tags/:id`              | Yes  | 204                                       |
-| POST   | `/api/notes/:id/tags/:tagId` | Yes  | 200 note with tags                        |
-| DELETE | `/api/notes/:id/tags/:tagId` | Yes  | 200 note with tags                        |
+| Method | Path                                            | Auth    | Success                                   |
+| :----- | :---------------------------------------------- | :------ | :---------------------------------------- |
+| POST   | `/api/auth/register`                            | No      | 201 `{ userId }`                          |
+| POST   | `/api/auth/login`                               | No      | 200 `{ accessToken, refreshToken, user }` |
+| POST   | `/api/auth/logout`                              | Yes     | 204                                       |
+| POST   | `/api/auth/refresh`                             | No      | 200 `{ accessToken }`                     |
+| POST   | `/api/auth/forgot-password`                     | No      | 200 `{ message }`                         |
+| POST   | `/api/auth/reset-password`                      | No      | 200 `{ message }`                         |
+| GET    | `/api/notes`                                    | Yes     | 200 `[...notes]` + pagination meta        |
+| POST   | `/api/notes`                                    | Yes     | 201 note                                  |
+| GET    | `/api/notes/:id`                                | Yes     | 200 note                                  |
+| PATCH  | `/api/notes/:id`                                | Yes     | 200 note                                  |
+| DELETE | `/api/notes/:id`                                | Yes     | 204 (soft-delete)                         |
+| GET    | `/api/tags`                                     | Yes     | 200 `[...tags]`                           |
+| POST   | `/api/tags`                                     | Yes     | 201 `{ id, name }`                        |
+| PATCH  | `/api/tags/:id`                                 | Yes     | 200 tag                                   |
+| DELETE | `/api/tags/:id`                                 | Yes     | 204                                       |
+| POST   | `/api/notes/:id/tags/:tagId`                    | Yes     | 200 note with tags                        |
+| DELETE | `/api/notes/:id/tags/:tagId`                    | Yes     | 200 note with tags                        |
+| GET    | `/api/search`                                   | Yes     | 200 `[...notes with highlight]` + meta    |
+| POST   | `/api/notes/:id/shares`                         | Yes     | 201 share link                            |
+| GET    | `/api/notes/:id/shares`                         | Yes     | 200 `[...share links]`                    |
+| POST   | `/api/shares/:shareId/revoke`                   | Yes     | 200 share link                            |
+| GET    | `/api/share/:token`                             | No      | 200 note (public read-only)               |
+| GET    | `/api/notes/:id/versions`                       | Yes     | 200 `[...versions]`                       |
+| GET    | `/api/notes/:id/versions/:versionId`            | Yes     | 200 version                               |
+| POST   | `/api/notes/:id/versions/:versionId/restore`    | Yes     | 200 note                                  |
 
 ---
 
 ## 6. Database Schema (current)
 
-Core models: `User`, `Note` (soft-delete via `deletedAt`), `Tag` (`normalizedName` for case-insensitive uniqueness), `NoteTag` (join table, cascade delete), `RefreshToken`.
+Core models: `User`, `Note` (soft-delete via `deletedAt`), `Tag` (`normalizedName` for case-insensitive uniqueness), `NoteTag` (join table, cascade delete), `RefreshToken`, `OtpToken`, `SharedLink`, `NoteVersion`.
 
 Key constraints:
 
 - `Tag` has `@@unique([userId, normalizedName])` — case-insensitive duplicate prevention
 - `NoteTag` cascade-deletes when Tag is deleted
 - `Note` soft-deleted via `deletedAt`; never physically deleted in CRUD flows
+- `SharedLink` has unique `token`; cascade-deletes when Note is deleted
+- `NoteVersion` has `@@unique([noteId, version])`; cascade-deletes when Note is deleted; auto-purged by background scheduler per retention policy
 
 ---
 
@@ -133,6 +146,12 @@ All in `packages/shared/src/errors.ts`:
 | `TAG_NOT_FOUND`       | 404  | Tag not found or wrong owner               |
 | `TAG_NAME_TAKEN`      | 422  | Duplicate tag name for same user           |
 | `VALIDATION_ERROR`    | 400  | Zod validation failure (includes `fields`) |
+| `OTP_EXPIRED`         | 410  | Password reset OTP past 10-min expiry      |
+| `OTP_INVALID`         | 400  | Password reset OTP hash mismatch           |
+| `SHARE_NOT_FOUND`     | 404  | Share link not found or wrong owner        |
+| `SHARE_REVOKED`       | 403  | Share link has been revoked                |
+| `SHARE_EXPIRED`       | 410  | Share link expired or note soft-deleted    |
+| `VERSION_NOT_FOUND`   | 404  | Version not found or doesn't belong to note |
 
 ---
 
@@ -195,9 +214,14 @@ pnpm test --coverage    # ≥80% coverage
 
 ## 11. Ticket Sequence
 
-| Ticket  | Feature                                     | Status  |
-| :------ | :------------------------------------------ | :------ |
-| AB-1001 | Auth (register, login, logout, refresh)     | ✅ Done |
-| AB-1002 | Notes CRUD                                  | ✅ Done |
-| AB-1003 | Notes soft-delete + list filtering          | ✅ Done |
-| AB-1004 | Tags (create, list, delete, attach, detach) | ✅ Done |
+| Ticket  | Feature                                                      | Status  |
+| :------ | :----------------------------------------------------------- | :------ |
+| AB-1001 | Auth (register, login, logout, refresh)                      | ✅ Done |
+| AB-1002 | Notes CRUD                                                   | ✅ Done |
+| AB-1003 | Notes soft-delete + list filtering                           | ✅ Done |
+| AB-1004 | Tags (create, list, delete, attach, detach)                  | ✅ Done |
+| AB-1005 | Notes pagination, sorting, filtering                         | ✅ Done |
+| AB-1006 | Tags CRUD + note count                                       | ✅ Done |
+| AB-1007 | Search — full-text with highlight + pagination               | ✅ Done |
+| AB-1008 | Sharing — generate link, revoke, public access, view count   | ✅ Done |
+| AB-1009 | Version history — snapshot, list, view, restore, auto-purge  | ✅ Done |
