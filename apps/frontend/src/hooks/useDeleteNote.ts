@@ -11,6 +11,7 @@ export function useDeleteNote() {
       api.delete(`/notes/${noteId}`).then(() => undefined),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["notes"] });
+      void queryClient.invalidateQueries({ queryKey: ["search"] });
       toast.success("Note deleted");
     },
     onError: (err) => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterEach, afterAll, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import React from "react";
@@ -411,4 +411,364 @@ describe("NotesPage", () => {
     // No note cards should be visible
     expect(screen.queryByText("Test Note")).not.toBeInTheDocument();
   });
+}, 15000);
+
+// ---------------------------------------------------------------------------
+// AB-1013 — Search UI with highlights
+// ---------------------------------------------------------------------------
+
+/**
+ * Advance fake timers and flush all pending promises/microtasks.
+ * waitFor() uses setInterval internally so must NOT be used while fake
+ * timers are active. Use this helper to advance time, then call
+ * vi.useRealTimers() before any waitFor() assertion.
+ */
+async function advanceAndFlush(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+}
+
+describe("NotesPage — Search (AB-1013)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAuthStore.getState().setAuth("token-123", {
+      id: "user-1",
+      email: "test@example.com",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // S1 — Search mode renders SearchResultCard grid
+  it("AC-S1: search mode renders SearchResultCard grid in NotesPage", async () => {
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    // The initial URL already has q=react, so the debounce fires on mount
+    // Advance past debounce (400ms) and let the search fetch settle
+    await advanceAndFlush(500);
+
+    // Switch to real timers so waitFor can poll
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      // SearchResultCard renders a role="button" with the note title
+      expect(screen.getByRole("button", { name: /test note/i })).toBeInTheDocument();
+    });
+  }, 15000);
+
+  // S2 — Highlight snippet visible in page
+  it("AC-S2: highlight snippet visible in rendered SearchResultCard in page", async () => {
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      // The MSW handler returns: The <mark>react</mark> appears in this note
+      expect(screen.getByText(/appears in this note/i)).toBeInTheDocument();
+    });
+  }, 15000);
+
+  // S3 — No results empty state
+  it("AC-S3: no results — 'No notes match' empty state shown", async () => {
+    server.use(
+      http.get("/api/search", () =>
+        HttpResponse.json(
+          { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 1 } },
+          { status: 200 }
+        )
+      )
+    );
+
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=nonexistent");
+
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      expect(screen.getByText(/no notes match/i)).toBeInTheDocument();
+    });
+  }, 15000);
+
+  // S4 — Only items returned by API are rendered (soft-deleted excluded by backend)
+  it("AC-S4: only items returned by API are rendered (soft-deleted excluded by backend)", async () => {
+    server.use(
+      http.get("/api/search", () =>
+        HttpResponse.json(
+          {
+            data: [
+              {
+                id: "note-live",
+                userId: "user-1",
+                title: "Live Note",
+                content: "live content",
+                highlight: "This is the <mark>react</mark> live note",
+                deletedAt: null,
+                createdAt: "2024-01-01T00:00:00.000Z",
+                updatedAt: "2024-01-02T00:00:00.000Z",
+                tags: [],
+              },
+            ],
+            meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+          },
+          { status: 200 }
+        )
+      )
+    );
+
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      expect(screen.getByText("Live Note")).toBeInTheDocument();
+    });
+
+    // A soft-deleted note with a different id must NOT appear
+    expect(screen.queryByText("Deleted Note")).not.toBeInTheDocument();
+  }, 15000);
+
+  // S7 — Changing query resets ?page= to 1
+  it("AC-S7: changing query resets ?page= to 1", async () => {
+    let capturedPage: string | null = null;
+
+    server.use(
+      http.get("/api/search", ({ request }) => {
+        const url = new URL(request.url);
+        capturedPage = url.searchParams.get("page");
+        return HttpResponse.json(
+          {
+            data: [
+              {
+                id: "note-1",
+                userId: "user-1",
+                title: "Test Note",
+                content: "content",
+                highlight: "The <mark>new</mark> query",
+                deletedAt: null,
+                createdAt: "2024-01-01T00:00:00.000Z",
+                updatedAt: "2024-01-02T00:00:00.000Z",
+                tags: [],
+              },
+            ],
+            meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+          },
+          { status: 200 }
+        );
+      })
+    );
+
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=old&page=3");
+
+    // Advance past initial debounce for "old" query
+    await advanceAndFlush(500);
+
+    const input = screen.getByRole("textbox", { name: /search notes/i });
+    // Change the query — triggers a new 400ms debounce that resets page to 1
+    fireEvent.change(input, { target: { value: "new" } });
+
+    // Advance past the new debounce
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    await waitFor(() => {
+      expect(capturedPage).toBe("1");
+    });
+  }, 15000);
+
+  // S8 — Clearing input removes ?q= from URL; NoteCard grid restored
+  it("AC-S8: clearing input removes ?q= from URL; NoteCard grid restored", async () => {
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    // Advance past debounce so search results load
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    // Wait for search result and clear button to appear
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /clear search/i })).toBeInTheDocument();
+    });
+
+    vi.useFakeTimers();
+
+    // Clear the search using the X button
+    const clearButton = screen.getByRole("button", { name: /clear search/i });
+    fireEvent.click(clearButton);
+
+    // Advance past the new debounce (rawQuery becomes "")
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    // Sort select should reappear now that we are out of search mode
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: /sort notes/i })).toBeInTheDocument();
+    });
+
+    // NoteCard (regular list) should be visible
+    await waitFor(() => {
+      expect(screen.getByText("Test Note")).toBeInTheDocument();
+    });
+  }, 20000);
+
+  // S9 — Initial URL ?q=foo pre-fills input and renders search results on load
+  it("AC-S9: initial URL ?q=foo — input pre-filled and search results render on load", async () => {
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    // Input should be pre-filled immediately from URL (no timer needed)
+    const input = screen.getByRole("textbox", { name: /search notes/i });
+    expect((input as HTMLInputElement).value).toBe("react");
+
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    // Search results should appear
+    await waitFor(() => {
+      expect(screen.getByText(/appears in this note/i)).toBeInTheDocument();
+    });
+  }, 15000);
+
+  // S10 — Whitespace input in page — ?q= not set; notes list remains
+  it("AC-S10: whitespace input in page — ?q= not set; notes list remains", async () => {
+    const searchRequestSpy = vi.fn();
+
+    server.use(
+      http.get("/api/search", () => {
+        searchRequestSpy();
+        return HttpResponse.json(
+          { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 1 } },
+          { status: 200 }
+        );
+      })
+    );
+
+    vi.useFakeTimers();
+    renderNotesPage("/notes");
+
+    const input = screen.getByRole("textbox", { name: /search notes/i });
+    fireEvent.change(input, { target: { value: "   " } });
+
+    // Advance past debounce — the effect fires but trimmed === "" so q param
+    // is NOT set; useSearch stays disabled (enabled: q.trim().length > 0)
+    await advanceAndFlush(500);
+
+    // Search API must NOT be called
+    expect(searchRequestSpy).not.toHaveBeenCalled();
+
+    // Sort select must still be in the DOM (not in search mode)
+    expect(screen.getByRole("combobox", { name: /sort notes/i })).toBeInTheDocument();
+
+    vi.useRealTimers();
+
+    // Regular notes list must still be visible
+    await waitFor(() => {
+      expect(screen.getByText("Test Note")).toBeInTheDocument();
+    });
+  }, 15000);
+
+  // S11 — Search pending — skeleton placeholders shown
+  it("AC-S11: search pending — skeleton placeholders shown while isLoading", async () => {
+    server.use(
+      http.get("/api/search", async () => {
+        await new Promise(() => {
+          // Never resolves — keeps search isLoading true
+        });
+        return HttpResponse.json({ data: [], meta: {} });
+      })
+    );
+
+    vi.useFakeTimers();
+    renderNotesPage("/notes?q=react");
+
+    // Advance past debounce — search starts loading but never resolves
+    await advanceAndFlush(500);
+
+    // Check skeletons are present (fake timers still active — direct DOM query)
+    const skeletons = document.querySelectorAll(".animate-pulse");
+    expect(skeletons.length).toBeGreaterThan(0);
+
+    expect(screen.queryByRole("button", { name: /test note/i })).not.toBeInTheDocument();
+  }, 15000);
+
+  // S12 — Delete note from search results — ["search"] cache invalidated
+  it("AC-S12: delete note from search results — ['search'] cache invalidated", async () => {
+    vi.useFakeTimers();
+    const { queryClient } = renderNotesPage("/notes?q=react");
+
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    await advanceAndFlush(500);
+
+    vi.useRealTimers();
+
+    // Wait for search result card's delete button to appear
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /delete note/i })).toBeInTheDocument();
+    });
+
+    // Click delete on the SearchResultCard
+    const deleteButton = screen.getByRole("button", { name: /delete note/i });
+    fireEvent.click(deleteButton);
+
+    // The DeleteNoteDialog opens — click the confirm Delete button
+    const confirmButton = await screen.findByRole("button", { name: /^delete$/i });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: ["search"] })
+      );
+    });
+  }, 15000);
+
+  // S14 — Sort <Select> not in DOM when ?q= is set
+  it("AC-S1: sort <Select> not in DOM when ?q= is set (search mode active)", async () => {
+    // isSearchMode is true immediately when q is in the URL;
+    // the Select is conditionally rendered based on isSearchMode
+    renderNotesPage("/notes?q=react");
+
+    // Sort select must be absent in search mode immediately
+    expect(screen.queryByRole("combobox", { name: /sort notes/i })).not.toBeInTheDocument();
+  });
+
+  // S14 — 401 on GET /api/search triggers auth clear + redirect to /login
+  it("AC-S14: 401 on GET /api/search triggers auth clear + redirect to /login", async () => {
+    // The api.ts interceptor calls window.location.href = '/login' on 401
+    // (not useNavigate), so we assert that clearAuth was invoked on the store
+    const clearAuthSpy = vi.spyOn(useAuthStore.getState(), "clearAuth");
+
+    server.use(
+      http.get("/api/search", () =>
+        HttpResponse.json(
+          { error: { code: "UNAUTHORIZED", message: "Unauthorized" } },
+          { status: 401 }
+        )
+      )
+    );
+
+    // Render with ?q= active so useSearch fires and hits the mocked 401
+    renderNotesPage("/notes?q=react");
+
+    await waitFor(() => {
+      expect(clearAuthSpy).toHaveBeenCalled();
+    });
+  }, 15000);
 }, 15000);

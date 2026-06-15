@@ -121,4 +121,27 @@ export const handlers = [
   http.get("/api/tags", () => {
     return HttpResponse.json({ data: [mockTag] }, { status: 200 });
   }),
+
+  http.get("/api/search", ({ request }) => {
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q");
+    if (!q || q.trim() === "") {
+      return HttpResponse.json(
+        { error: { code: "VALIDATION_ERROR", message: "Search query is required" } },
+        { status: 400 }
+      );
+    }
+    return HttpResponse.json(
+      {
+        data: [
+          {
+            ...mockNote,
+            highlight: `The <mark>${q}</mark> appears in this note`,
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      },
+      { status: 200 }
+    );
+  }),
 ];
