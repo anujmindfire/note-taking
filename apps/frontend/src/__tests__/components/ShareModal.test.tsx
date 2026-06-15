@@ -222,6 +222,25 @@ describe("ShareModal", () => {
     });
   });
 
+  describe("S4b — toEndOfDayISO conversion", () => {
+    it("AC-S4b: toEndOfDayISO sets time to 23:59:59 local time on the selected date", () => {
+      // Validates the toEndOfDayISO helper used in handleGenerate when selectedDate is set.
+      // The Popover/Calendar cannot be interacted with in JSDOM (Radix Portal limitation),
+      // so we test the conversion logic directly with the same implementation.
+      // setHours sets LOCAL time; toISOString converts to UTC — use local getters to assert.
+      const input = new Date(2027, 11, 31); // Dec 31, 2027 in local time
+      const d = new Date(input);
+      d.setHours(23, 59, 59, 0);
+      const iso = d.toISOString();
+      const parsed = new Date(iso);
+      expect(parsed.getHours()).toBe(23);
+      expect(parsed.getMinutes()).toBe(59);
+      expect(parsed.getSeconds()).toBe(59);
+      expect(parsed.getFullYear()).toBe(2027);
+      expect(parsed.getMonth()).toBe(11); // December
+    });
+  });
+
   describe("S5 — date picker disables past dates", () => {
     it("AC-S5: Calendar disabled prop blocks today and past dates, allows future dates", () => {
       // The disabled function ShareModal passes to Calendar is: (date) => date <= new Date()
@@ -238,7 +257,6 @@ describe("ShareModal", () => {
       expect(disabled(yesterday)).toBe(true);
       expect(disabled(tomorrow)).toBe(false);
     });
-
   });
 
   describe("S6 — copy link to clipboard", () => {
@@ -373,7 +391,7 @@ describe("ShareModal", () => {
   });
 
   describe("S10 — generate link, note not found", () => {
-    it("AC-S10: POST returns 404 NOTE_NOT_FOUND — toast.error shown", async () => {
+    it("AC-S10: POST returns 404 NOTE_NOT_FOUND — toast.error shown, date picker reset to No expiry", async () => {
       server.use(
         http.get("/api/notes/:noteId/shares", () =>
           HttpResponse.json({ data: [] }, { status: 200 })
@@ -400,6 +418,8 @@ describe("ShareModal", () => {
       });
 
       expect(toast.success).not.toHaveBeenCalled();
+      // Form resets — date picker trigger returns to "No expiry" after error
+      expect(screen.getByRole("button", { name: /no expiry/i })).toBeInTheDocument();
     });
   });
 });

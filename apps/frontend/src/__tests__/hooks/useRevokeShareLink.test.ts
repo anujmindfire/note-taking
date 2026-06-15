@@ -74,7 +74,7 @@ describe("useRevokeShareLink", () => {
     );
   });
 
-  it("AC-S9: revoke — link already gone — API returns 404 SHARE_NOT_FOUND, toast.error shown", async () => {
+  it("AC-S9: revoke — link already gone — API returns 404 SHARE_NOT_FOUND, toast.error shown, shares query refetched", async () => {
     server.use(
       http.post("/api/shares/:shareId/revoke", () =>
         HttpResponse.json(
@@ -90,6 +90,7 @@ describe("useRevokeShareLink", () => {
         mutations: { retry: false },
       },
     });
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(
@@ -111,5 +112,8 @@ describe("useRevokeShareLink", () => {
     expect(result.current.isError).toBe(true);
     expect(toast.error).toHaveBeenCalledWith("Share link not found");
     expect(toast.success).not.toHaveBeenCalled();
+    expect(invalidateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ["shares", "note-1"] })
+    );
   });
 });
