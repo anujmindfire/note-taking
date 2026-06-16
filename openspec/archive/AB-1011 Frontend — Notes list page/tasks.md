@@ -21,6 +21,7 @@ Add new shadcn/ui primitives and the content preview utility.
   - [ ] `DELETE /api/notes/:id` handler returning 204
 
 **Checkpoint 1:**
+
 - [ ] `pnpm build` — 0 errors
 - [ ] `pnpm --filter @noteapp/frontend lint`
 
@@ -45,6 +46,7 @@ Add new shadcn/ui primitives and the content preview utility.
   - [ ] `onError`: `toast.error(getErrorMessage(err))`
 
 **Checkpoint 2:**
+
 - [ ] `pnpm build` — 0 errors
 - [ ] `pnpm --filter @noteapp/frontend lint`
 
@@ -53,7 +55,7 @@ Add new shadcn/ui primitives and the content preview utility.
 ## Phase 3 — Page Components
 
 - [ ] Create `apps/frontend/src/components/Navbar.tsx`
-  - [ ] Shows app name ("JotDown")
+  - [ ] Shows app name ("Note")
   - [ ] Reads `user.email` from `useAuthStore`
   - [ ] Renders "Logout" button wired to `useLogout` from AB-1010
 - [ ] Create `apps/frontend/src/components/TagSidebar.tsx`
@@ -82,6 +84,7 @@ Add new shadcn/ui primitives and the content preview utility.
   - [ ] Renders `<DeleteNoteDialog />` controlled by local `deletingNoteId` state
 
 **Checkpoint 3:**
+
 - [ ] `pnpm build` — 0 errors
 - [ ] `pnpm --filter @noteapp/frontend lint`
 
@@ -94,6 +97,7 @@ Add new shadcn/ui primitives and the content preview utility.
   - [ ] Replace `<div>Notes page — coming soon</div>` with `<NotesPage />`
 
 **Checkpoint 4:**
+
 - [ ] `pnpm build` — 0 errors
 - [ ] `pnpm --filter @noteapp/frontend lint`
 
@@ -137,6 +141,7 @@ Delegate to test-writer agent. Every row in the spec scenario table must have a 
   - [ ] AC-S13: clicking "Logout" calls `useLogout` and navigates to `/login`
 
 **Checkpoint 5 (final):**
+
 - [ ] `pnpm build` — 0 errors
 - [ ] `pnpm --filter @noteapp/frontend lint`
 - [ ] `pnpm --filter @noteapp/frontend test` — all green

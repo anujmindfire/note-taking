@@ -50,7 +50,7 @@ export function RegisterPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Create account</CardTitle>
           <CardDescription>
-            Sign up to start using JotDown.
+            Sign up to start using Note.
           </CardDescription>
         </CardHeader>
         <CardContent>
