@@ -42,7 +42,7 @@ test("S15: Anonymous user can view shared note content", async ({
   browser,
 }) => {
   // Open share URL in a fresh context without storageState (anonymous user)
-  const anonCtx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } });
+  const anonCtx = await browser.newContext({ baseURL: BASE_URL });
   const anonPage = await anonCtx.newPage();
 
   await anonPage.goto(`/shared/${shareToken}`);
@@ -76,7 +76,7 @@ test("S16: Revoke link — anonymous user sees access-denied message", async ({
 
   await page.keyboard.press("Escape");
 
-  const anonCtx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } });
+  const anonCtx = await browser.newContext({ baseURL: BASE_URL });
   const anonPage = await anonCtx.newPage();
 
   await anonPage.goto(`/shared/${shareToken}`);

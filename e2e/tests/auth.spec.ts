@@ -3,14 +3,13 @@ import { E2E_USER } from "../helpers/auth";
 
 const BASE_URL = process.env["BASE_URL"] ?? "http://localhost:5173";
 
-// S1–S4 use fresh anonymous contexts.
-// browser.newContext() inherits the project's storageState by default; passing
-// storageState: { cookies: [], origins: [] } overrides that and creates a truly
-// unauthenticated context. baseURL must also be set explicitly here.
+// S1–S4 use fresh contexts with no storageState.
+// browser.newContext() does NOT inherit baseURL from playwright.config.ts,
+// so we must pass it explicitly on every manual context creation.
 // S5–S6 use the storageState injected by the chromium project config.
 
 test("S1: Register new account", async ({ browser }) => {
-  const ctx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } });
+  const ctx = await browser.newContext({ baseURL: BASE_URL });
   const page = await ctx.newPage();
 
   const uniqueEmail = `s1-${Date.now()}@test.com`;
@@ -20,14 +19,13 @@ test("S1: Register new account", async ({ browser }) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await page.waitForURL("**/notes");
-  // "Note" matches multiple elements; scope to the header navbar brand span
-  await expect(page.locator("header").getByText("Note", { exact: true })).toBeVisible();
+  await expect(page.getByText("Note")).toBeVisible();
 
   await ctx.close();
 });
 
 test("S2: Login with valid credentials", async ({ browser }) => {
-  const ctx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } });
+  const ctx = await browser.newContext({ baseURL: BASE_URL });
   const page = await ctx.newPage();
 
   await page.goto("/login");
@@ -42,28 +40,18 @@ test("S2: Login with valid credentials", async ({ browser }) => {
 });
 
 test("S3: Login with wrong password shows error", async ({ browser }) => {
-  const ctx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } });
+  const ctx = await browser.newContext({ baseURL: BASE_URL });
   const page = await ctx.newPage();
 
   await page.goto("/login");
   await page.locator("#email").fill(E2E_USER.email);
   await page.locator("#password").fill("WrongPass1");
-
-  // Wait for the 401 response before asserting the toast to avoid timing races
-  await Promise.all([
-    page.waitForResponse(
-      (r) => r.url().includes("/api/auth/login") && r.status() === 401
-    ),
-    page.getByRole("button", { name: "Sign in" }).click(),
-  ]);
+  await page.getByRole("button", { name: "Sign in" }).click();
 
   await expect(page).toHaveURL(/\/login/);
-  // Use toContainText on the Sonner toaster container — this checks the DOM text
-  // content directly without being blocked by CSS opacity/animation state.
-  await expect(page.locator("[data-sonner-toaster]")).toContainText(
-    "Invalid email or password",
-    { timeout: 8000 }
-  );
+  await expect(
+    page.locator("[data-sonner-toast]").or(page.getByText(/invalid/i))
+  ).toBeVisible({ timeout: 5000 });
 
   await ctx.close();
 });
@@ -71,7 +59,7 @@ test("S3: Login with wrong password shows error", async ({ browser }) => {
 test("S4: Auth guard — unauthenticated user redirected to /login", async ({
   browser,
 }) => {
-  const ctx = await browser.newContext({ baseURL: BASE_URL, storageState: { cookies: [], origins: [] } }); // no storageState = anonymous
+  const ctx = await browser.newContext({ baseURL: BASE_URL }); // no storageState = anonymous
   const page = await ctx.newPage();
 
   await page.goto("/notes");

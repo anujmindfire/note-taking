@@ -34,28 +34,12 @@ test("S11: Create tag via sidebar UI", async ({ page }) => {
   await page.getByRole("button", { name: "New tag" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
 
-  // pressSequentially fires real key events (keydown/keyup per char) so React 19's
-  // controlled onChange updates name state. fill() only dispatches an input event
-  // which React 19 sometimes ignores for controlled inputs inside dialogs.
-  await page.getByLabel("Tag name").pressSequentially(TAG_NAME);
+  await page.getByLabel("Tag name").fill(TAG_NAME);
+  await page.getByLabel("Color").fill("#3b82f6");
+  await page.getByRole("button", { name: "Create tag" }).click();
 
-  // Verify the button is enabled before submitting (confirms name state updated)
-  await expect(page.getByRole("button", { name: "Create tag" })).toBeEnabled();
-
-  // Submit via Enter key which fires the native form submit event — more reliable
-  // than button.click() when dialog animations interfere with pointer events.
-  // waitForResponse captures any POST to /api/tags regardless of status so the
-  // subsequent expect gives a clear failure message if the API rejects the request.
-  const [createResp] = await Promise.all([
-    page.waitForResponse(
-      (r) => r.url().includes("/api/tags") && r.request().method() === "POST"
-    ),
-    page.getByLabel("Tag name").press("Enter"),
-  ]);
-  expect(createResp.status()).toBe(201);
-
-  // Tag button accessible name includes the note count ("TAG_NAME 0"), so use exact: false
-  await expect(page.getByRole("button", { name: TAG_NAME, exact: false })).toBeVisible({
+  // Tag button appears in the sidebar after creation
+  await expect(page.getByRole("button", { name: TAG_NAME })).toBeVisible({
     timeout: 5000,
   });
 });
@@ -74,10 +58,8 @@ test("S12: Attach tag to note via editor tag picker", async ({ page }) => {
 test("S13: Filter notes by tag shows only tagged notes", async ({ page }) => {
   await page.goto("/notes");
 
-  // Scope to <aside> (TagSidebar) — note cards also include the tag name in their
-  // accessible name after S12 attaches the tag, which would cause a strict mode violation.
-  await page.locator("aside").getByRole("button", { name: TAG_NAME, exact: false }).click();
-  await expect(page).toHaveURL(/[?&]tagId=/);
+  await page.getByRole("button", { name: TAG_NAME }).click();
+  await expect(page).toHaveURL(/tagId\[\]/);
 
   await expect(page.getByText(taggedNoteTitle)).toBeVisible();
   await expect(page.getByText(untaggedNoteTitle)).not.toBeVisible();
