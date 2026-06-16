@@ -65,10 +65,9 @@ test("S18: Restore an older version updates note title", async ({ page }) => {
   ).toBeVisible();
 
   // The current version (first entry) has its Restore button disabled.
-  // Target the first enabled Restore button (which corresponds to an older version).
+  // disabled: false checks the button's own disabled attribute (not child elements).
   const enabledRestore = page
-    .getByRole("button", { name: "Restore" })
-    .filter({ hasNot: page.locator("[disabled]") })
+    .getByRole("button", { name: "Restore", disabled: false })
     .first();
 
   await Promise.all([

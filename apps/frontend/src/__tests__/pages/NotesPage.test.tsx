@@ -110,7 +110,7 @@ describe("NotesPage", () => {
     server.use(
       http.get("/api/notes", ({ request }) => {
         const url = new URL(request.url);
-        capturedTagParam = url.searchParams.get("tagId[]");
+        capturedTagParam = url.searchParams.get("tagId");
         return HttpResponse.json(
           {
             data: [],
@@ -132,8 +132,8 @@ describe("NotesPage", () => {
     });
   });
 
-  // S4: filter by multiple tags → URL has both tagId[] params
-  it("AC-S4: filter by multiple tags — URL contains both tagId[] params", async () => {
+  // S4: filter by multiple tags → URL has both tagId params
+  it("AC-S4: filter by multiple tags — URL contains both tagId params", async () => {
     const capturedTagParams: string[] = [];
 
     server.use(
@@ -165,7 +165,7 @@ describe("NotesPage", () => {
       http.get("/api/notes", ({ request }) => {
         const url = new URL(request.url);
         capturedTagParams.length = 0;
-        capturedTagParams.push(...url.searchParams.getAll("tagId[]"));
+        capturedTagParams.push(...url.searchParams.getAll("tagId"));
         return HttpResponse.json(
           { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 1 } },
           { status: 200 }
@@ -195,7 +195,7 @@ describe("NotesPage", () => {
       http.get("/api/notes", ({ request }) => {
         const url = new URL(request.url);
         capturedParams.push({
-          tagIds: url.searchParams.getAll("tagId[]"),
+          tagIds: url.searchParams.getAll("tagId"),
           page: url.searchParams.get("page"),
         });
         return HttpResponse.json(
@@ -205,7 +205,7 @@ describe("NotesPage", () => {
       })
     );
 
-    renderNotesPage("/notes?tagId[]=tag-1&page=2");
+    renderNotesPage("/notes?tagId=tag-1&page=2");
 
     // Tag should be pre-selected; click it to deselect
     const tagButton = await screen.findByRole("button", { name: /work/i });

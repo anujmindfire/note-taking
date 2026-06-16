@@ -38,5 +38,6 @@ test("S8: Edit note — autosave fires and updates note list", async ({
 
   // Navigate back and verify title updated in the notes list
   await page.goto("/notes");
-  await expect(page.getByText("Playwright E2E Test Note")).toBeVisible();
+  // Multiple note cards may exist from prior runs (no DB reset); .first() avoids strict mode
+  await expect(page.getByText("Playwright E2E Test Note").first()).toBeVisible();
 });

@@ -38,7 +38,7 @@ export function NotesPage() {
   const page = Number(searchParams.get("page") ?? "1");
   const sortBy = (searchParams.get("sortBy") ?? "updatedAt") as "updatedAt" | "createdAt";
   const sortDir = (searchParams.get("sortDir") ?? "desc") as "asc" | "desc";
-  const tagIds = searchParams.getAll("tagId[]");
+  const tagIds = searchParams.getAll("tagId");
 
   // URL-driven search query (debounced value)
   const q = searchParams.get("q") ?? "";
@@ -84,8 +84,8 @@ export function NotesPage() {
       ? tagIds.filter((t) => t !== id)
       : [...tagIds, id];
     const params = new URLSearchParams(searchParams);
-    params.delete("tagId[]");
-    for (const t of next) params.append("tagId[]", t);
+    params.delete("tagId");
+    for (const t of next) params.append("tagId", t);
     params.set("page", "1");
     setSearchParams(params);
   }

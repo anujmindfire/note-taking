@@ -19,7 +19,7 @@ export function useNotes(query: TListNotesQuery) {
       params.set("sortBy", query.sortBy ?? "updatedAt");
       params.set("sortDir", query.sortDir ?? "desc");
       for (const id of query.tagId ?? []) {
-        params.append("tagId[]", id);
+        params.append("tagId", id);
       }
       const res = await api.get<{ data: INoteResponse[]; meta: INotesPageMeta }>(
         `/notes?${params.toString()}`

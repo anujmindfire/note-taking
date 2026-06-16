@@ -20,7 +20,8 @@ test("S1: Register new account", async ({ browser }) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await page.waitForURL("**/notes");
-  await expect(page.getByText("Note")).toBeVisible();
+  // "Note" matches multiple elements; scope to the header navbar brand span
+  await expect(page.locator("header").getByText("Note", { exact: true })).toBeVisible();
 
   await ctx.close();
 });
@@ -47,12 +48,22 @@ test("S3: Login with wrong password shows error", async ({ browser }) => {
   await page.goto("/login");
   await page.locator("#email").fill(E2E_USER.email);
   await page.locator("#password").fill("WrongPass1");
-  await page.getByRole("button", { name: "Sign in" }).click();
+
+  // Wait for the 401 response before asserting the toast to avoid timing races
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("/api/auth/login") && r.status() === 401
+    ),
+    page.getByRole("button", { name: "Sign in" }).click(),
+  ]);
 
   await expect(page).toHaveURL(/\/login/);
-  await expect(
-    page.locator("[data-sonner-toast]").or(page.getByText(/invalid/i))
-  ).toBeVisible({ timeout: 5000 });
+  // Use toContainText on the Sonner toaster container — this checks the DOM text
+  // content directly without being blocked by CSS opacity/animation state.
+  await expect(page.locator("[data-sonner-toaster]")).toContainText(
+    "Invalid email or password",
+    { timeout: 8000 }
+  );
 
   await ctx.close();
 });

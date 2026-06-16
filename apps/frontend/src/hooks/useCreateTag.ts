@@ -7,7 +7,7 @@ export function useCreateTag() {
   return useMutation({
     mutationFn: (data: TCreateTagInput) =>
       api
-        .post<{ data: ITagResponse }>("/api/tags", data)
+        .post<{ data: ITagResponse }>("/tags", data)
         .then((r) => r.data.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tags"] }),
   });

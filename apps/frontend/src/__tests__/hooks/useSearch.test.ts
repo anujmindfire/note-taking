@@ -92,13 +92,13 @@ describe("useSearch", () => {
     expect(result.current.data?.meta.total).toBe(0);
   });
 
-  it("AC-S5: tag filter forwarded — tagId[] param present in request URL", async () => {
+  it("AC-S5: tag filter forwarded — tagId param present in request URL", async () => {
     let capturedTagIds: string[] = [];
 
     server.use(
       http.get("/api/search", ({ request }) => {
         const url = new URL(request.url);
-        capturedTagIds = url.searchParams.getAll("tagId[]");
+        capturedTagIds = url.searchParams.getAll("tagId");
         return HttpResponse.json(
           { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 1 } },
           { status: 200 }
