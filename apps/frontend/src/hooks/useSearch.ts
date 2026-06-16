@@ -18,7 +18,7 @@ export function useSearch(query: TSearchQuery) {
       params.set("page", String(query.page ?? 1));
       params.set("limit", String(query.limit ?? 20));
       for (const id of query.tagId ?? []) {
-        params.append("tagId[]", id);
+        params.append("tagId", id);
       }
       const res = await api.get<{ data: ISearchResult[]; meta: INotesPageMeta }>(
         `/search?${params.toString()}`
