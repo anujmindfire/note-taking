@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title: JotDown API — AB-1002 Auth Delta
+  title: Note API — AB-1002 Auth Delta
   version: "1.0.0"
 
 # DELTA TYPE: ADDED

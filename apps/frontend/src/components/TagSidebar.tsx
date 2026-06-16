@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { useTags } from "@/hooks/useTags";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TagCreateDialog } from "@/components/TagCreateDialog";
 import { cn } from "@/lib/utils";
 import type { ITagResponse } from "@noteapp/shared";
 
@@ -11,12 +15,24 @@ interface TagSidebarProps {
 
 export function TagSidebar({ selectedTagIds, onToggle }: TagSidebarProps) {
   const { data: tags, isLoading } = useTags();
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <aside className="flex w-52 shrink-0 flex-col gap-1 overflow-y-auto border-r px-3 py-4">
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mb-1 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Tags
       </p>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-1 w-full justify-start text-xs"
+        aria-label="New tag"
+        onClick={() => setCreateOpen(true)}
+      >
+        <Plus className="mr-1.5 h-3 w-3" />
+        New tag
+      </Button>
+      <TagCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
       {isLoading
         ? Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-8 w-full rounded-md" />
