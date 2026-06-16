@@ -8,7 +8,9 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "turbo run format",
-    "prepare": "husky"
+    "prepare": "husky",
+    "e2e": "pnpm --filter @noteapp/e2e run e2e",
+    "e2e:ui": "pnpm --filter @noteapp/e2e run e2e:ui"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -1,0 +1,14 @@
+{
+  "name": "@noteapp/e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "dotenv": "16.4.7"
+  }
+}
