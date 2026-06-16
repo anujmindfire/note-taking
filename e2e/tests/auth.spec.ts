@@ -19,7 +19,7 @@ test("S1: Register new account", async ({ browser }) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await page.waitForURL("**/notes");
-  await expect(page.getByText("JotDown")).toBeVisible();
+  await expect(page.getByText("Note")).toBeVisible();
 
   await ctx.close();
 });

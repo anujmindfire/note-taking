@@ -8,7 +8,7 @@ export function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center border-b bg-background px-6">
-      <span className="text-lg font-semibold tracking-tight">JotDown</span>
+      <span className="text-lg font-semibold tracking-tight">Note</span>
       <div className="ml-auto flex items-center gap-4">
         {user && (
           <span className="text-sm text-muted-foreground">{user.email}</span>

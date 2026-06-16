@@ -10,7 +10,7 @@
 
 ## Summary
 
-Initialize the JotDown monorepo development infrastructure. This is a foundational, non-feature ticket that establishes the repository structure, shared type contracts, backend and frontend scaffolding, AI development toolchain, and quality gates that all subsequent feature tickets depend on.
+Initialize the Note monorepo development infrastructure. This is a foundational, non-feature ticket that establishes the repository structure, shared type contracts, backend and frontend scaffolding, AI development toolchain, and quality gates that all subsequent feature tickets depend on.
 
 No user-facing functionality is delivered. Acceptance is verified by `pnpm install && pnpm build` completing with zero errors and zero warnings.
 
@@ -18,16 +18,16 @@ No user-facing functionality is delivered. Acceptance is verified by `pnpm insta
 
 ## In Scope
 
-| Area | Deliverable |
-| :--- | :--- |
-| Monorepo | `pnpm-workspace.yaml`, root `package.json`, `turbo.json`, `tsconfig.base.json` |
-| Shared package | `packages/shared` — Zod schemas, TypeScript interfaces, error codes |
-| Backend scaffold | `apps/backend` — Express 5 app, middleware stubs, Prisma schema, vitest config |
-| Frontend scaffold | `apps/frontend` — Vite + React 19 app, API client, auth store, router stub |
-| Domain CLAUDE.md | `apps/backend/CLAUDE.md`, `apps/frontend/CLAUDE.md`, `packages/shared/CLAUDE.md` |
-| AI toolchain | `.claude/commands/` (7 slash commands), `.claude/agents/` (2 sub-agents) |
-| PM tickets | `docs/tickets/` — AB-1001 through AB-1004 ticket definitions |
-| Docs | `openspec/project.md` populated from FRS + SDS |
+| Area              | Deliverable                                                                      |
+| :---------------- | :------------------------------------------------------------------------------- |
+| Monorepo          | `pnpm-workspace.yaml`, root `package.json`, `turbo.json`, `tsconfig.base.json`   |
+| Shared package    | `packages/shared` — Zod schemas, TypeScript interfaces, error codes              |
+| Backend scaffold  | `apps/backend` — Express 5 app, middleware stubs, Prisma schema, vitest config   |
+| Frontend scaffold | `apps/frontend` — Vite + React 19 app, API client, auth store, router stub       |
+| Domain CLAUDE.md  | `apps/backend/CLAUDE.md`, `apps/frontend/CLAUDE.md`, `packages/shared/CLAUDE.md` |
+| AI toolchain      | `.claude/commands/` (7 slash commands), `.claude/agents/` (2 sub-agents)         |
+| PM tickets        | `docs/tickets/` — AB-1001 through AB-1004 ticket definitions                     |
+| Docs              | `openspec/project.md` populated from FRS + SDS                                   |
 
 ---
 
@@ -44,28 +44,28 @@ No user-facing functionality is delivered. Acceptance is verified by `pnpm insta
 
 ## FRS Alignment
 
-| FRS Section | How addressed |
-| :--- | :--- |
-| §6.1 Client Software — modern HTML5 browsers | Vite + React 19 SPA confirmed |
-| §6.2 Storage — PostgreSQL | Prisma 5 + PostgreSQL 16 configured in schema |
-| §6.4 Single-region topology | Single backend process, no distributed config |
-| §5.4.1 Test alignment | Vitest + Supertest installed, coverage threshold 80% configured |
-| §5.4.2 Coverage minimums | `vitest.config.ts` thresholds set to 80% |
+| FRS Section                                  | How addressed                                                   |
+| :------------------------------------------- | :-------------------------------------------------------------- |
+| §6.1 Client Software — modern HTML5 browsers | Vite + React 19 SPA confirmed                                   |
+| §6.2 Storage — PostgreSQL                    | Prisma 5 + PostgreSQL 16 configured in schema                   |
+| §6.4 Single-region topology                  | Single backend process, no distributed config                   |
+| §5.4.1 Test alignment                        | Vitest + Supertest installed, coverage threshold 80% configured |
+| §5.4.2 Coverage minimums                     | `vitest.config.ts` thresholds set to 80%                        |
 
 ---
 
 ## SDS Alignment
 
-| SDS Decision | Implementation |
-| :--- | :--- |
-| §1.2 React 19 + TypeScript + Vite 5 | ✅ `apps/frontend` |
-| §1.2 Zustand (UI state) | ✅ `authStore.ts` uses zustand with persist |
-| §1.2 TanStack Query v5 | ✅ `App.tsx` QueryClientProvider |
-| §1.2 Node.js 22 + Express 5 | ✅ `apps/backend/package.json` |
-| §1.2 Prisma 5 + PostgreSQL 16 | ✅ `prisma/schema.prisma` |
-| §1.2 Zod validation | ✅ `packages/shared/src/schemas/` |
-| §2 Workspace structure | ✅ pnpm workspaces — `apps/*` + `packages/*` |
-| Path convention | AGENTS.md canonical: `apps/frontend/`, `apps/backend/` (overrides SDS `apps/web/`, `apps/api/`) |
+| SDS Decision                        | Implementation                                                                                  |
+| :---------------------------------- | :---------------------------------------------------------------------------------------------- |
+| §1.2 React 19 + TypeScript + Vite 5 | ✅ `apps/frontend`                                                                              |
+| §1.2 Zustand (UI state)             | ✅ `authStore.ts` uses zustand with persist                                                     |
+| §1.2 TanStack Query v5              | ✅ `App.tsx` QueryClientProvider                                                                |
+| §1.2 Node.js 22 + Express 5         | ✅ `apps/backend/package.json`                                                                  |
+| §1.2 Prisma 5 + PostgreSQL 16       | ✅ `prisma/schema.prisma`                                                                       |
+| §1.2 Zod validation                 | ✅ `packages/shared/src/schemas/`                                                               |
+| §2 Workspace structure              | ✅ pnpm workspaces — `apps/*` + `packages/*`                                                    |
+| Path convention                     | AGENTS.md canonical: `apps/frontend/`, `apps/backend/` (overrides SDS `apps/web/`, `apps/api/`) |
 
 ---
 

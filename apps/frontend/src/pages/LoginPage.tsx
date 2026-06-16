@@ -42,7 +42,7 @@ export function LoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription>
-            Enter your email and password to access JotDown.
+            Enter your email and password to access Note.
           </CardDescription>
         </CardHeader>
         <CardContent>

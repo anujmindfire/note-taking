@@ -9,13 +9,13 @@
 
 Files to create/modify to register `e2e/` as a pnpm workspace:
 
-| Action | File | What changes |
-|--------|------|-------------|
-| CREATE | `e2e/package.json` | `@noteapp/e2e` workspace; `@playwright/test 1.49.1`, `dotenv 16.4.7` devDependencies |
-| CREATE | `e2e/.gitignore` | Ignore `.auth/`, `playwright-report/`, `test-results/`, `.env.test` |
-| CREATE | `e2e/.env.test.example` | Documents required env vars: `TEST_DATABASE_URL`, `BASE_URL` |
-| MODIFY | `pnpm-workspace.yaml` | Add `'e2e'` to packages list |
-| MODIFY | `package.json` (root) | Add `"e2e"` and `"e2e:ui"` scripts |
+| Action | File                    | What changes                                                                         |
+| ------ | ----------------------- | ------------------------------------------------------------------------------------ |
+| CREATE | `e2e/package.json`      | `@noteapp/e2e` workspace; `@playwright/test 1.49.1`, `dotenv 16.4.7` devDependencies |
+| CREATE | `e2e/.gitignore`        | Ignore `.auth/`, `playwright-report/`, `test-results/`, `.env.test`                  |
+| CREATE | `e2e/.env.test.example` | Documents required env vars: `TEST_DATABASE_URL`, `BASE_URL`                         |
+| MODIFY | `pnpm-workspace.yaml`   | Add `'e2e'` to packages list                                                         |
+| MODIFY | `package.json` (root)   | Add `"e2e"` and `"e2e:ui"` scripts                                                   |
 
 ### e2e/package.json — exact content:
 
@@ -47,19 +47,19 @@ Files to create/modify to register `e2e/` as a pnpm workspace:
 
 ```yaml
 packages:
-  - 'apps/*'
-  - 'packages/*'
-  - 'e2e'
+  - "apps/*"
+  - "packages/*"
+  - "e2e"
 ```
 
 ---
 
 ## Phase 2 — Playwright Configuration & Global Setup
 
-| Action | File | Purpose |
-|--------|------|---------|
+| Action | File                       | Purpose                                                                           |
+| ------ | -------------------------- | --------------------------------------------------------------------------------- |
 | CREATE | `e2e/playwright.config.ts` | Two projects: `setup` (globalSetup) + `chromium` (storageState); baseURL from env |
-| CREATE | `e2e/global.setup.ts` | DB reset → register seed user via API → browser login → save `.auth/user.json` |
+| CREATE | `e2e/global.setup.ts`      | DB reset → register seed user via API → browser login → save `.auth/user.json`    |
 
 ### playwright.config.ts — exact shape:
 
@@ -119,7 +119,7 @@ setup("seed DB and save auth state", async ({ page, request }) => {
       cwd: path.resolve(__dirname, "../../"),
       env: { ...process.env, DATABASE_URL: process.env.TEST_DATABASE_URL! },
       stdio: "inherit",
-    }
+    },
   );
 
   // 2. Register seed user via API
@@ -147,11 +147,11 @@ setup("seed DB and save auth state", async ({ page, request }) => {
 
 Files to create/modify in `apps/frontend/src/`:
 
-| Action | File | What changes |
-|--------|------|-------------|
-| CREATE | `hooks/useCreateTag.ts` | TanStack Query mutation: `POST /api/tags`; invalidates `['tags']` on success |
+| Action | File                             | What changes                                                                     |
+| ------ | -------------------------------- | -------------------------------------------------------------------------------- |
+| CREATE | `hooks/useCreateTag.ts`          | TanStack Query mutation: `POST /api/tags`; invalidates `['tags']` on success     |
 | CREATE | `components/TagCreateDialog.tsx` | Controlled Dialog: tag name input + color picker; calls `useCreateTag` on submit |
-| MODIFY | `components/TagSidebar.tsx` | Add "New tag" button below the "Tags" heading; renders `TagCreateDialog` |
+| MODIFY | `components/TagSidebar.tsx`      | Add "New tag" button below the "Tags" heading; renders `TagCreateDialog`         |
 
 ### useCreateTag.ts — exact signature:
 
@@ -174,18 +174,19 @@ export function useCreateTag() {
 
 ### TagCreateDialog.tsx — key aria attributes (test selectors depend on these):
 
-| Element | Required aria attribute |
-|---------|------------------------|
-| Dialog open trigger | `aria-label="New tag"` on the Button in TagSidebar |
-| Tag name field | `<Label htmlFor="tag-name">` + `<Input id="tag-name" aria-label="Tag name">` |
-| Color field | `<Label htmlFor="tag-color">` + `<Input id="tag-color" type="color" aria-label="Color">` |
-| Submit button | text "Create tag" |
+| Element             | Required aria attribute                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Dialog open trigger | `aria-label="New tag"` on the Button in TagSidebar                                       |
+| Tag name field      | `<Label htmlFor="tag-name">` + `<Input id="tag-name" aria-label="Tag name">`             |
+| Color field         | `<Label htmlFor="tag-color">` + `<Input id="tag-color" type="color" aria-label="Color">` |
+| Submit button       | text "Create tag"                                                                        |
 
 These aria attributes must be present exactly — the test selectors in Phase 4 depend on them.
 
 ### TagSidebar.tsx — change summary:
 
 Add below the `<p>Tags</p>` heading:
+
 ```tsx
 <Button
   variant="ghost"
@@ -208,14 +209,14 @@ Add `useState<boolean>(false)` for `createOpen`.
 
 All files live in `e2e/tests/`. All spec files (except `auth.spec.ts`) inherit the `storageState` from the `chromium` project config.
 
-| File | Scenarios | Data setup approach |
-|------|-----------|-------------------|
-| `auth.spec.ts` | S1–S6 | S1 registers a unique new user via UI; S2–S3 use fresh `browser.newContext()`; S4 uses fresh context (no state); S5 uses storageState; S6 uses storageState |
-| `notes.spec.ts` | S7–S8 | S7 creates via UI; S8 builds on S7's note within the same `describe` block |
-| `search.spec.ts` | S9–S10 | `beforeAll`: creates note with "playwright" in content via `request.post` |
-| `tags.spec.ts` | S11–S13 | S11 creates tag via UI; S12–S13 use that tag; `beforeAll` creates tagged + untagged notes via API |
-| `share.spec.ts` | S14–S16 | `beforeAll`: creates note via API; S14 generates link via UI + captures token from API response |
-| `versions.spec.ts` | S17–S18 | `beforeAll`: creates note via API (v1 auto-created); edits via browser + waits for autosave (v2 created) |
+| File               | Scenarios | Data setup approach                                                                                                                                         |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.spec.ts`     | S1–S6     | S1 registers a unique new user via UI; S2–S3 use fresh `browser.newContext()`; S4 uses fresh context (no state); S5 uses storageState; S6 uses storageState |
+| `notes.spec.ts`    | S7–S8     | S7 creates via UI; S8 builds on S7's note within the same `describe` block                                                                                  |
+| `search.spec.ts`   | S9–S10    | `beforeAll`: creates note with "playwright" in content via `request.post`                                                                                   |
+| `tags.spec.ts`     | S11–S13   | S11 creates tag via UI; S12–S13 use that tag; `beforeAll` creates tagged + untagged notes via API                                                           |
+| `share.spec.ts`    | S14–S16   | `beforeAll`: creates note via API; S14 generates link via UI + captures token from API response                                                             |
+| `versions.spec.ts` | S17–S18   | `beforeAll`: creates note via API (v1 auto-created); edits via browser + waits for autosave (v2 created)                                                    |
 
 ---
 
@@ -231,7 +232,7 @@ describe("Auth journey")
     fill "#password" → "E2eTest123"
     click getByRole("button", { name: "Create account" })
     expect URL → /notes
-    expect getByText("JotDown").toBeVisible()
+    expect getByText("Note").toBeVisible()
 
   test("S2: Login with valid credentials")
     page = fresh context
@@ -271,15 +272,15 @@ describe("Auth journey")
 
 **Selector reference:**
 
-| Element | Playwright selector |
-|---------|-------------------|
-| Email input | `page.locator("#email")` |
-| Password input | `page.locator("#password")` |
+| Element         | Playwright selector                                    |
+| --------------- | ------------------------------------------------------ |
+| Email input     | `page.locator("#email")`                               |
+| Password input  | `page.locator("#password")`                            |
 | Register submit | `page.getByRole("button", { name: "Create account" })` |
-| Login submit | `page.getByRole("button", { name: "Sign in" })` |
-| Logout button | `page.getByRole("button", { name: "Logout" })` |
-| App title | `page.getByText("JotDown")` |
-| Error toast | `page.locator('[data-sonner-toast]')` |
+| Login submit    | `page.getByRole("button", { name: "Sign in" })`        |
+| Logout button   | `page.getByRole("button", { name: "Logout" })`         |
+| App title       | `page.getByText("Note")`                               |
+| Error toast     | `page.locator('[data-sonner-toast]')`                  |
 
 Note: S2 and S3 must NOT use the chromium storageState (they test the login flow from scratch); they require a fresh `browser.newContext()` created within the test.
 
@@ -313,6 +314,7 @@ describe("Notes journey")
 ```
 
 **Key implementation notes:**
+
 - `waitForResponse` on the PATCH `/api/notes/:id` response is more reliable than a fixed sleep.
 - TipTap `EditorContent` renders a `div.ProseMirror[contenteditable="true"]`. `page.fill()` does **not** work on contenteditable — use `.click()` followed by `page.keyboard.type()`.
 - The autosave status span shows `"Saved"` (from `NoteEditorPage.tsx` line 97), **not** `"Synced"` as written in the spec. Tests assert `page.getByText("Saved")`.
@@ -346,12 +348,12 @@ describe("Search journey")
 
 **Selector reference:**
 
-| Element | Playwright selector |
-|---------|-------------------|
-| Search input | `page.locator('[aria-label="Search notes"]')` |
-| Search result card | `page.locator('[role="button"]')` (NoteCard/SearchResultCard) |
-| Highlighted term | `page.locator("mark")` (rendered via `dangerouslySetInnerHTML` in SearchResultCard) |
-| No-results message | `page.getByText(/No notes match/)` |
+| Element            | Playwright selector                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| Search input       | `page.locator('[aria-label="Search notes"]')`                                       |
+| Search result card | `page.locator('[role="button"]')` (NoteCard/SearchResultCard)                       |
+| Highlighted term   | `page.locator("mark")` (rendered via `dangerouslySetInnerHTML` in SearchResultCard) |
+| No-results message | `page.getByText(/No notes match/)`                                                  |
 
 ---
 
@@ -391,6 +393,7 @@ describe("Tags journey")
 ```
 
 **Notes:**
+
 - The "Add tag…" `<SelectTrigger>` renders as `role="combobox"` (shadcn/ui); target with `page.getByRole("combobox")` since it is the only combobox on the editor page.
 - S12 depends on S11 having run (tag must exist before attaching). Tests run serially within the file (`fullyParallel: false`); shared `tagName` is module-level.
 
@@ -490,6 +493,7 @@ describe("Version history journey")
 ```
 
 **Key notes:**
+
 - `VersionHistoryDrawer` renders as a `Sheet` (shadcn). The Sheet title is "Version history"; close via the Sheet's built-in close button.
 - Version entries show `v{number} · {date}` format; match with regex `/v\d/`.
 - The Restore button for the current version (`index === 0`) has `disabled` attribute. Filter it out: `.filter({ hasNot: page.locator("[disabled]") })`.
@@ -499,12 +503,14 @@ describe("Version history journey")
 ## Checkpoints
 
 **After Phase 1 (workspace wired):**
+
 ```bash
 pnpm install
 pnpm --filter @noteapp/e2e playwright install chromium
 ```
 
 **After Phase 3 (TagSidebar addition):**
+
 ```bash
 pnpm build            # 0 errors, 0 warnings
 pnpm lint --max-warnings 0
@@ -512,6 +518,7 @@ pnpm test             # Vitest suite still green (no backend changes)
 ```
 
 **After Phase 4 (test files written, app running):**
+
 ```bash
 # Prerequisite: pnpm dev running; TEST_DATABASE_URL and BASE_URL set in e2e/.env.test
 pnpm e2e              # all 18 scenarios pass
@@ -523,13 +530,13 @@ pnpm e2e              # all 18 scenarios pass
 
 ## Risks & Assumptions
 
-| # | Risk / Assumption | Mitigation |
-|---|------------------|-----------|
-| R1 | `TagSidebar` has no create UI; `useCreateTag` hook does not exist — S11 is unimplementable as a browser test without them | Phase 3 adds `useCreateTag.ts`, `TagCreateDialog.tsx`, and the "New tag" button to `TagSidebar`. If scope creep concern: fall back to creating tags via API in `beforeAll` and re-scope S11 to verify tag appearance in sidebar only |
-| R2 | `global.setup.ts` calls `execSync` for DB reset — requires `TEST_DATABASE_URL` to differ from `DATABASE_URL` | Enforced by `process.env.TEST_DATABASE_URL!` (TypeScript non-null assertion throws at runtime if absent); documented in `.env.test.example` |
-| R3 | TipTap `div.ProseMirror[contenteditable="true"]` does not accept `page.fill()` | Use `locator(".ProseMirror").click()` + `page.keyboard.type(content)` in all tests that type note body content |
-| R4 | Autosave debounce is 2s; a static sleep would be brittle | Use `page.waitForResponse(r => r.url().includes("/notes/") && r.request().method() === "PATCH")` instead of any fixed sleep |
-| R5 | Share modal shows only `token.slice(0, 16)…` in the DOM — full URL cannot be reconstructed from the UI | Capture the full token from the `POST /api/notes/:id/shares` 201 response body using `page.waitForResponse` (documented in share.spec.ts outline) |
-| R6 | Multiple "Restore" buttons exist in the version drawer; the current version's button has `disabled` attribute | Use `.filter({ hasNot: page.locator("[disabled]") }).first()` to target only the enabled Restore button |
-| R7 | Spec says autosave status is "Synced" — actual component text is "Saved" (`NoteEditorPage.tsx` line 97) | All test assertions use `getByText("Saved")`; spec wording is a minor inaccuracy |
-| R8 | `storageState` captures Zustand `localStorage` shape at login time; shape may be stale if Zustand store key changes | Acceptable: `global.setup.ts` re-runs before every suite and always writes a fresh `storageState` from a real browser login |
+| #   | Risk / Assumption                                                                                                         | Mitigation                                                                                                                                                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1  | `TagSidebar` has no create UI; `useCreateTag` hook does not exist — S11 is unimplementable as a browser test without them | Phase 3 adds `useCreateTag.ts`, `TagCreateDialog.tsx`, and the "New tag" button to `TagSidebar`. If scope creep concern: fall back to creating tags via API in `beforeAll` and re-scope S11 to verify tag appearance in sidebar only |
+| R2  | `global.setup.ts` calls `execSync` for DB reset — requires `TEST_DATABASE_URL` to differ from `DATABASE_URL`              | Enforced by `process.env.TEST_DATABASE_URL!` (TypeScript non-null assertion throws at runtime if absent); documented in `.env.test.example`                                                                                          |
+| R3  | TipTap `div.ProseMirror[contenteditable="true"]` does not accept `page.fill()`                                            | Use `locator(".ProseMirror").click()` + `page.keyboard.type(content)` in all tests that type note body content                                                                                                                       |
+| R4  | Autosave debounce is 2s; a static sleep would be brittle                                                                  | Use `page.waitForResponse(r => r.url().includes("/notes/") && r.request().method() === "PATCH")` instead of any fixed sleep                                                                                                          |
+| R5  | Share modal shows only `token.slice(0, 16)…` in the DOM — full URL cannot be reconstructed from the UI                    | Capture the full token from the `POST /api/notes/:id/shares` 201 response body using `page.waitForResponse` (documented in share.spec.ts outline)                                                                                    |
+| R6  | Multiple "Restore" buttons exist in the version drawer; the current version's button has `disabled` attribute             | Use `.filter({ hasNot: page.locator("[disabled]") }).first()` to target only the enabled Restore button                                                                                                                              |
+| R7  | Spec says autosave status is "Synced" — actual component text is "Saved" (`NoteEditorPage.tsx` line 97)                   | All test assertions use `getByText("Saved")`; spec wording is a minor inaccuracy                                                                                                                                                     |
+| R8  | `storageState` captures Zustand `localStorage` shape at login time; shape may be stale if Zustand store key changes       | Acceptable: `global.setup.ts` re-runs before every suite and always writes a fresh `storageState` from a real browser login                                                                                                          |
