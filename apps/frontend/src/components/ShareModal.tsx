@@ -65,13 +65,13 @@ export function ShareModal({ noteId, open, onOpenChange }: IShareModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg flex flex-col overflow-hidden max-h-[85vh]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Share note</DialogTitle>
         </DialogHeader>
 
         {/* Generate form */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-44 justify-start text-left font-normal text-sm">
@@ -111,7 +111,7 @@ export function ShareModal({ noteId, open, onOpenChange }: IShareModalProps) {
         </div>
 
         {/* Link list */}
-        <div className="max-h-72 space-y-2 overflow-y-auto">
+        <div className="flex-1 min-h-0 space-y-2 overflow-y-auto">
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-10 w-full" />

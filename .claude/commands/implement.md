@@ -6,10 +6,15 @@ Implement: $ARGUMENTS
 
 Read these files before writing a single line of code:
 
-1. `AGENTS.md` — architecture rules, error codes, naming conventions, quality gates
-2. `openspec/changes/$ARGUMENTS/spec.md` — what to build (API contract, scenarios, DB changes)
-3. `openspec/changes/$ARGUMENTS/plan.md` — how to build it (exact files, method signatures)
-4. `openspec/changes/$ARGUMENTS/tasks.md` — checklist to follow phase by phase
+1. `CLAUDE.md` — project-wide rules, permission model, quality gates
+2. `AGENTS.md` — architecture rules, error codes, naming conventions, quality gates
+3. Domain CLAUDE.md — read the one matching the ticket layer:
+   - Frontend ticket → `apps/frontend/CLAUDE.md`
+   - Backend ticket → `apps/backend/CLAUDE.md`
+   - Full-stack → read both
+4. `openspec/changes/$ARGUMENTS/spec.md` — what to build (API contract, scenarios, DB changes)
+5. `openspec/changes/$ARGUMENTS/plan.md` — how to build it (exact files, method signatures)
+6. `openspec/changes/$ARGUMENTS/tasks.md` — checklist to follow phase by phase
 
 Also scan for reusable patterns:
 - `apps/backend/src/repositories/` — existing repository examples
@@ -68,17 +73,27 @@ Proceed automatically for:
 
 ## Phase 6 — Tests
 
-Delegate test writing to the test-writer agent. Pass it:
+Delegate test writing to the **`test-writer` subagent** using the Agent tool:
 
-- The path to `spec.md` for scenario IDs and expected behavior
-- The path to the implementation files it needs to test
-- The existing test files as examples of patterns to follow
+```
+Agent({
+  subagent_type: "test-writer",
+  prompt: `Write all tests for $ARGUMENTS.
+    Spec (scenario IDs + AC): openspec/changes/$ARGUMENTS/spec.md
+    Implementation files: [list each created/modified file]
+    Pattern examples: [list 1-2 existing test files in the same directory]
+    Rules:
+    - Name every test "AC-{ID}: {scenario name}" matching the spec table exactly
+    - Backend unit tests → apps/backend/src/__tests__/unit/services/
+    - Backend integration tests → apps/backend/src/__tests__/integration/routes/
+    - Frontend hook tests → apps/frontend/src/__tests__/hooks/
+    - Frontend component tests → apps/frontend/src/__tests__/components/
+    - Assert res.body.error.code string, not just HTTP status, on every error case
+    - Do NOT touch implementation files — tests only`
+})
+```
 
-The test-writer:
-- Writes unit tests in `apps/backend/src/__tests__/unit/services/`
-- Writes integration tests in `apps/backend/src/__tests__/integration/routes/`
-- Names every test `AC-{ID}: {scenario name}` matching the spec table
-- Asserts `res.body.error.code` not just HTTP status in error cases
+The test-writer must cover every scenario row from spec.md.
 
 ---
 

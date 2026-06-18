@@ -1,8 +1,19 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/lenovo/Documents/note-taking/openspec/changes/AB-1017)"
+    ],
+    "additionalDirectories": [
+      "/home/lenovo/Documents/note-taking/openspec/changes"
+    ]
+  },
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@1.3.0"],
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@1.3.0"
+      ],
       "env": {}
     }
   }
