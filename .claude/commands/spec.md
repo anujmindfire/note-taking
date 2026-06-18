@@ -1,17 +1,25 @@
 Create a specification file for: $ARGUMENTS
 
+`$ARGUMENTS` must be in the format `AB-XXXX-short-name` matching the branch naming convention
+(e.g. `AB-1018-tag-colors`). All output files go in `openspec/changes/$ARGUMENTS/`.
+
 ---
 
 ## Step 1 — Read context
 
 Read these files before doing anything:
 
-1. `AGENTS.md` — architecture rules, error codes, API contracts
-2. `docs/FRS.md` — functional requirements
-3. `docs/SDS.md` — system design spec
-4. `docs/tickets/$ARGUMENTS.md` — the ticket definition (if it exists)
-5. `openspec/project.md` — project-level decisions
-6. Any existing files in `openspec/changes/$ARGUMENTS/` to avoid duplication
+1. `CLAUDE.md` — project-wide rules, permission model, quality gates
+2. `AGENTS.md` — architecture rules, error codes, API contracts, naming conventions
+3. Domain CLAUDE.md — read the one matching the ticket layer:
+   - Frontend ticket → `apps/frontend/CLAUDE.md`
+   - Backend ticket → `apps/backend/CLAUDE.md`
+   - Full-stack → read both
+4. `docs/FRS.md` — functional requirements
+5. `docs/SDS.md` — system design spec
+6. `docs/tickets/$ARGUMENTS.md` — the ticket definition (if it exists)
+7. `openspec/project.md` — project-level decisions
+8. Any existing files in `openspec/changes/$ARGUMENTS/` to avoid duplication
 
 Scan the current implementation to understand what already exists:
 - `apps/backend/src/routes/`
@@ -162,3 +170,17 @@ Any decisions that deviate from or extend the standard three-layer pattern. Keep
 - All error codes must come from AGENTS.md §10 (or define new ones explicitly)
 - All response shapes must match AGENTS.md §6 and §7 contracts exactly
 - Wait for the user to approve the spec before any implementation begins
+
+---
+
+## Step 4 — Validate with reviewer subagent
+
+After generating spec.md, spawn the `reviewer` subagent (`Agent` tool with `subagent_type: "reviewer"`) to check:
+
+- Every scenario has a unique ID and a FRS AC reference
+- All error codes appear in AGENTS.md §10 or are explicitly defined as new
+- API contracts match §6 (`{ data: {...} }`) and §7 (`{ error: {...} }`) shapes exactly
+- Every FRS acceptance criterion for this ticket maps to ≥ 1 scenario row
+- No "Out of Scope" item appears as a scenario row
+
+Incorporate any gaps into spec.md before presenting to the user for approval.

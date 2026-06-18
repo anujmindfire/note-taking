@@ -1,19 +1,28 @@
 Create implementation plan for: $ARGUMENTS
 
+`$ARGUMENTS` must be in the format `AB-XXXX-short-name` matching the branch naming convention.
+Reads spec from `openspec/changes/$ARGUMENTS/spec.md`. Saves plan to `openspec/changes/$ARGUMENTS/plan.md`.
+
 ---
 
 ## Step 1 — Read context
 
 Read these files in order:
 
-1. `AGENTS.md` — architecture rules, naming conventions, error codes
-2. `openspec/changes/$ARGUMENTS/spec.md` — the approved specification
-3. `docs/SDS.md` — system design for architectural alignment
-4. `packages/shared/src/` — existing types, schemas, error codes
-5. `apps/backend/src/routes/` — existing route patterns
-6. `apps/backend/src/services/` — existing service patterns
-7. `apps/backend/src/repositories/` — existing repository patterns
-8. `apps/backend/prisma/schema.prisma` — current DB schema
+1. `CLAUDE.md` — project-wide rules, permission model, quality gates
+2. `AGENTS.md` — architecture rules, naming conventions, error codes
+3. Domain CLAUDE.md — read the one matching the ticket layer:
+   - Frontend ticket → `apps/frontend/CLAUDE.md`
+   - Backend ticket → `apps/backend/CLAUDE.md`
+   - Full-stack → read both
+4. `openspec/changes/$ARGUMENTS/spec.md` — the approved specification
+5. `docs/SDS.md` — system design for architectural alignment
+6. `packages/shared/src/` — existing types, schemas, error codes
+7. `apps/backend/src/routes/` — existing route patterns (backend tickets)
+8. `apps/backend/src/services/` — existing service patterns (backend tickets)
+9. `apps/backend/src/repositories/` — existing repository patterns (backend tickets)
+10. `apps/backend/prisma/schema.prisma` — current DB schema (backend tickets)
+11. `apps/frontend/src/` — existing hooks, pages, components (frontend tickets)
 
 ---
 

@@ -1,13 +1,21 @@
 Review implementation for: $ARGUMENTS
 
+> **Subagent type:** This command runs as the `reviewer` subagent (`subagent_type: "reviewer"`)
+> when delegated from `/implement`. Invoke it via the Agent tool so it gets the read-only
+> reviewer system prompt and cannot modify implementation files.
+
 ---
 
 ## Step 1 — Read context
 
-1. `openspec/changes/$ARGUMENTS/spec.md` OR `openspec/archive/$ARGUMENTS/spec.md`
-2. `openspec/changes/$ARGUMENTS/plan.md` OR `openspec/archive/$ARGUMENTS/plan.md`
-3. `AGENTS.md` — architecture rules, error codes, response contracts
-4. Run `git diff main...HEAD` to see the full implementation diff
+1. `CLAUDE.md` — project-wide rules, permission model, quality gates
+2. `AGENTS.md` — architecture rules, error codes, response contracts
+3. Domain CLAUDE.md matching the ticket layer:
+   - Frontend → `apps/frontend/CLAUDE.md`
+   - Backend → `apps/backend/CLAUDE.md`
+4. `openspec/changes/$ARGUMENTS/spec.md` OR `openspec/archive/$ARGUMENTS/spec.md`
+5. `openspec/changes/$ARGUMENTS/plan.md` OR `openspec/archive/$ARGUMENTS/plan.md`
+6. Run `git diff main...HEAD` to see the full implementation diff
 
 Then read each changed file in full — do not rely only on the diff.
 
